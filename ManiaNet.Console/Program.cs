@@ -10,8 +10,8 @@ namespace ManiaNet.ConsoleTesting
         //System.Web.HttpUtility.HtmlEncode for string values
 
         private static string authenticationRequest = "<?xml version=\"1.0\" encoding=\"utf-8\" ?><methodCall><methodName>Authenticate</methodName><params>" +
-            "<param><value><string>SuperAdmin</string></value></param>\n" +
-            "<param><value><string>ManiaNet</string></value></param>\n</params></methodCall>";
+            "<param><value><string>SuperAdmin</string></value></param>" +
+            "<param><value><string>ManiaNet</string></value></param></params></methodCall>";
 
         private static string listMethodsRequest = "<?xml version=\"1.0\" encoding=\"utf-8\" ?><methodCall><methodName>system.listMethods</methodName><params></params></methodCall>";
 

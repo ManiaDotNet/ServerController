@@ -18,7 +18,12 @@ The two possible protocols are `GBXRemote 1` and `GBXRemote 2`, so the character
 
 ###Calling Methods###
 
-Method calls are send to the server in XML format. For a parameterless method this would be (formatting added by me):
+Method calls are send to the server in XML format.
+
+For `GBXRemote 2` the XML declaration has to be preceded by 8 bytes, containing two uints for the length of the response and the handle respectively.
+For `GBXRemote 1` it's only 4 bytes for the length.
+
+For a parameterless method it would be (formatting added by me):
 
 ``` XML
 <?xml version="1.0" encoding="utf-8" ?>
@@ -28,7 +33,7 @@ Method calls are send to the server in XML format. For a parameterless method th
 </methodCall>
 ```
 
-For a method with parameters, it seems to be (formatting added by me):
+For a method with parameters, it would be (formatting added by me):
 
 ``` XML
 <?xml version="1.0" encoding="utf-8" ?>
@@ -39,19 +44,28 @@ For a method with parameters, it seems to be (formatting added by me):
 			<value>
 				<string>SuperAdmin</string>
 			</value>
-		</param>\n
+		</param>
 		<param>
 			<value>
 				<string>ManiaNet</string>
 			</value>
-		</param>\n
+		</param>
 	</params>
 </methodCall>
 ```
 
+###Method Responses###
+
+Method responses are send back in XML format.
+
+For `GBXRemote 2` the XML declaration is preceded by 8 bytes, containing two uints for the length of the response and the handle respectively.
+For `GBXRemote 1` it's only 4 bytes for the length.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 The value tag can contain one of the following tags:
 
-* `<boolean>` where `true` is `1` and `false` is `0`.
+* `<boolean>` containing a boolean, where `true` is `1` and `false` is `0`.
 
 * `<int>` containing an integer number.
 
@@ -59,14 +73,14 @@ The value tag can contain one of the following tags:
 
 * `<string>` containing a string, in which any special characters have been replaced by their HTML representation.
 
-* `<array>` containing a `<data>` tag followed by `\n` and then `<value>` tags, which can contain any of the types in this list. The closing `</value>` tag is also followed by `\n`.
+* `<array>` containing a `<data>` tag which contains `<value>` tags, which can contain any of the types in this list.
 
-* `<struct>` followed by `\n` containing a `<member>` tag which contains a `<name>` tag with the string name of the member, and a `<value>` tag, which can contain any of the types in this list. The closing `</member>` tag is followed by `\n`.
+* `<struct>` containing a `<member>` tag which contains a `<name>` tag with the string name of the member, and a `<value>` tag, which can contain any of the types in this list.
 
 * `<dateTime.iso8601>` containing a string representation of a date, formatted according to ISO-8601 `yyyymmddThh:mm:ss` (the T is a literal).
 
 * `<base64>` containing data encoded into a base64 string.
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-The placement of `\n` Line Feeds in the XML seems to be completely arbitrary and wouldn't normally influence parsing.
+The list of methods (without description) can be found [here](https://github.com/Banane9/ManiaNet/blob/master/RPC-Method-List.md) and the official documentation is [here](http://maniaplanet.github.io/documentation//dedicated-server/methods/latest.html).
