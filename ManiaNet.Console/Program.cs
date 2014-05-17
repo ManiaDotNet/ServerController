@@ -8,11 +8,9 @@ namespace ManiaNet.ConsoleTesting
 {
     internal class Program
     {
-        //System.Web.HttpUtility.HtmlEncode for string values
-
         private static void Main(string[] args)
         {
-            XmlRpcClient xmlRpcConnection = new XmlRpcClient(new XmlRpcClientConfig(port: 5001));
+            XmlRpcClient xmlRpcConnection = new XmlRpcClient(new XmlRpcClient.Config(port: 5001));
             Console.WriteLine("Connecting...");
             xmlRpcConnection.Connect();
             Console.WriteLine("Connected. Sending Authentication...");
