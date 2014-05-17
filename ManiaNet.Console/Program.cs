@@ -1,6 +1,5 @@
 ﻿using ManiaNet.DedicatedServer.XmlRpc;
 using ManiaNet.DedicatedServer.XmlRpc.MethodCalls;
-using ManiaNet.DedicatedServer.XmlRpc.MethodResponses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,16 +9,6 @@ namespace ManiaNet.ConsoleTesting
     internal class Program
     {
         //System.Web.HttpUtility.HtmlEncode for string values
-
-        //private static string allowCallbacksRequest = "<?xml version=\"1.0\" encoding=\"utf-8\" ?><methodCall><methodName>EnableCallbacks</methodName><params><param><value><boolean>1</boolean></value></param></params></methodCall>";
-
-        //private static string authenticationRequest = "<?xml version=\"1.0\" encoding=\"utf-8\" ?><methodCall><methodName>Authenticate</methodName><params>" +
-        //    "<param><value><string>SuperAdmin</string></value></param>" +
-        //    "<param><value><string>ManiaNet</string></value></param></params></methodCall>";
-
-        //private static string listMethodsRequest = "<?xml version=\"1.0\" encoding=\"utf-8\" ?><methodCall><methodName>system.listMethods</methodName><params></params></methodCall>";
-
-        //private static string setApiVersionRequest = "<?xml version=\"1.0\" encoding=\"utf-8\" ?><methodCall><methodName>SetApiVersion</methodName><params><param><value><string>2013-04-16</string></value></param></params></methodCall>";
 
         private static void Main(string[] args)
         {
@@ -43,7 +32,7 @@ namespace ManiaNet.ConsoleTesting
             //Console.WriteLine("Handle: " + xmlRpcConnection.Send(allowCallbacksRequest));
             //Thread.Sleep(250);
 
-            xmlRpcConnection.MethodResponse += (handle, content) => Console.WriteLine(new XmlRpcBoolean().ParseXml(content).Value);
+            xmlRpcConnection.MethodResponse += (handle, content) => Console.WriteLine();
 
             xmlRpcConnection.Receive();
 
