@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 		RPC-Method-List.md = RPC-Method-List.md
-		..\..\..\..\Desktop\ManiaPlanet Dedicated Server\Server-Callbacks-2013-04-16.html = ..\..\..\..\Desktop\ManiaPlanet Dedicated Server\Server-Callbacks-2013-04-16.html
+		Server-Callbacks-2013-04-16.html = Server-Callbacks-2013-04-16.html
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.Tests", "ManiaNet.Tests\ManiaNet.Tests.csproj", "{7DEEC460-1888-4779-A51A-FC6DE69A3481}"

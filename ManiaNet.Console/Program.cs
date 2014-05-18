@@ -1,5 +1,5 @@
-﻿using ManiaNet.DedicatedServer.XmlRpc;
-using ManiaNet.DedicatedServer.XmlRpc.MethodCalls;
+﻿using ManiaNet.DedicatedServer;
+using ManiaNet.DedicatedServer.XmlRpc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +11,10 @@ namespace ManiaNet.ConsoleTesting
         private static void Main(string[] args)
         {
             XmlRpcClient xmlRpcConnection = new XmlRpcClient(new XmlRpcClient.Config(port: 5001));
-            Console.WriteLine("Connecting...");
-            xmlRpcConnection.Connect();
-            Console.WriteLine("Connected. Sending Authentication...");
-            Console.WriteLine("Handle: " + xmlRpcConnection.SendRequest(new XmlRpcAuthenticate("SuperAdmin", "ManiaNet").GetXml()));
-            Console.WriteLine("Authentication sent");
+            xmlRpcConnection.MethodResponse += (client, handle, content) => Console.WriteLine("Handle " + handle + " returned: " + content);
+
+            ServerController controller = new ServerController(xmlRpcConnection, new ServerController.Config(password: "ManiaNet"));
+            controller.Start();
             //Thread.Sleep(250);
 
             //Console.WriteLine("Sending listmethods");
@@ -29,10 +28,6 @@ namespace ManiaNet.ConsoleTesting
             //Console.WriteLine("Enabling Callbacks");
             //Console.WriteLine("Handle: " + xmlRpcConnection.Send(allowCallbacksRequest));
             //Thread.Sleep(250);
-
-            xmlRpcConnection.MethodResponse += (handle, content) => Console.WriteLine();
-
-            xmlRpcConnection.StartReceive();
 
             Console.ReadLine();
         }
