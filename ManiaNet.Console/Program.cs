@@ -32,7 +32,7 @@ namespace ManiaNet.ConsoleTesting
 
             xmlRpcConnection.MethodResponse += (handle, content) => Console.WriteLine();
 
-            xmlRpcConnection.Receive();
+            xmlRpcConnection.StartReceive();
 
             Console.ReadLine();
         }
