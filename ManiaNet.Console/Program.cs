@@ -1,4 +1,4 @@
-﻿using ManiaNet.DedicatedServer;
+﻿using ManiaNet.DedicatedServer.Controller;
 using ManiaNet.DedicatedServer.XmlRpc;
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ namespace ManiaNet.ConsoleTesting
         private static void Main(string[] args)
         {
             XmlRpcClient xmlRpcConnection = new XmlRpcClient(new XmlRpcClient.Config(port: 5001));
-            xmlRpcConnection.MethodResponse += (client, handle, content) => Console.WriteLine("Handle " + handle + " returned: " + content);
+            xmlRpcConnection.MethodResponse += (client, handle, content) => Console.WriteLine("Handle " + handle + " returned:\r\n" + content);
 
             ServerController controller = new ServerController(xmlRpcConnection, new ServerController.Config(password: "ManiaNet"));
             controller.Start();

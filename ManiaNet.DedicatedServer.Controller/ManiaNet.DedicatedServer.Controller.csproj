@@ -4,16 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C2253BEF-10A4-426A-B4CE-AC7F11EF7AFC}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{9F4FDCA6-1CC3-4E85-864D-20D631461776}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ManiaNet.Console</RootNamespace>
-    <AssemblyName>ManiaNet.Console</AssemblyName>
+    <RootNamespace>ManiaNet.DedicatedServer.Controller</RootNamespace>
+    <AssemblyName>ManiaNet.DedicatedServer.Controller</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -41,14 +39,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="Controller.cs" />
+    <Compile Include="Plugins\ControllerPlugin.cs" />
+    <Compile Include="Plugins\RegisterControllerPluginAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ManiaNet.DedicatedServer.Controller\ManiaNet.DedicatedServer.Controller.csproj">
-      <Project>{9f4fdca6-1cc3-4e85-864d-20d631461776}</Project>
-      <Name>ManiaNet.DedicatedServer.Controller</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ManiaNet.DedicatedServer\ManiaNet.DedicatedServer.csproj">
       <Project>{086bb4ea-e79a-482e-84fc-4ea256ecf4b4}</Project>
       <Name>ManiaNet.DedicatedServer</Name>
