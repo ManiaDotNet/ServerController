@@ -4,16 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C2253BEF-10A4-426A-B4CE-AC7F11EF7AFC}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{086BB4EA-E79A-482E-84FC-4EA256ECF4B4}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ManiaNet.Console</RootNamespace>
-    <AssemblyName>ManiaNet.Console</AssemblyName>
+    <RootNamespace>ManiaNet.DedicatedServer.XmlRpc</RootNamespace>
+    <AssemblyName>ManiaNet.DedicatedServer.XmlRpc</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -34,6 +32,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,18 +40,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="IXmlRpcClient.cs" />
+    <Compile Include="MethodCalls\XmlRpcAuthenticate.cs" />
+    <Compile Include="Types\Structs\XmlRpcApplicationVersionStruct.cs" />
+    <Compile Include="Types\Structs\XmlRpcStructBase.cs" />
+    <Compile Include="Types\XmlRpcArray.cs" />
+    <Compile Include="Types\XmlRpcBase64.cs" />
+    <Compile Include="Types\XmlRpcBoolean.cs" />
+    <Compile Include="Types\XmlRpcDateTime.cs" />
+    <Compile Include="Types\XmlRpcDouble.cs" />
+    <Compile Include="Types\XmlRpcI4.cs" />
+    <Compile Include="Types\XmlRpcInt.cs" />
+    <Compile Include="Types\XmlRpcString.cs" />
+    <Compile Include="Types\XmlRpcStruct.cs" />
+    <Compile Include="XmlRpcClient.cs" />
+    <Compile Include="XmlRpcConstants.cs" />
+    <Compile Include="XmlRpcMethodCall.cs" />
+    <Compile Include="Types\XmlRpcType.cs" />
+    <Compile Include="XmlRpcServerCallback.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ManiaNet.DedicatedServer.Controller\ManiaNet.DedicatedServer.Controller.csproj">
-      <Project>{9f4fdca6-1cc3-4e85-864d-20d631461776}</Project>
-      <Name>ManiaNet.DedicatedServer.Controller</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ManiaNet.DedicatedServer.XmlRpc\ManiaNet.DedicatedServer.XmlRpc.csproj">
-      <Project>{086bb4ea-e79a-482e-84fc-4ea256ecf4b4}</Project>
-      <Name>ManiaNet.DedicatedServer.XmlRpc</Name>
-    </ProjectReference>
+    <Folder Include="ServerCallbacks\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

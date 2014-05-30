@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.DedicatedServer", "ManiaNet.DedicatedServer\ManiaNet.DedicatedServer.csproj", "{086BB4EA-E79A-482E-84FC-4EA256ECF4B4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.DedicatedServer.XmlRpc", "ManiaNet.DedicatedServer.XmlRpc\ManiaNet.DedicatedServer.XmlRpc.csproj", "{086BB4EA-E79A-482E-84FC-4EA256ECF4B4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.Console", "ManiaNet.Console\ManiaNet.Console.csproj", "{C2253BEF-10A4-426A-B4CE-AC7F11EF7AFC}"
 EndProject
@@ -17,6 +17,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.Tests", "ManiaNet.Tests\ManiaNet.Tests.csproj", "{7DEEC460-1888-4779-A51A-FC6DE69A3481}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.DedicatedServer.Controller", "ManiaNet.DedicatedServer.Controller\ManiaNet.DedicatedServer.Controller.csproj", "{9F4FDCA6-1CC3-4E85-864D-20D631461776}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.UI.WPF", "ManiaNet.UI.WPF\ManiaNet.UI.WPF.csproj", "{288D430C-A881-4065-94D9-94C1E1466733}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,6 +42,10 @@ Global
 		{9F4FDCA6-1CC3-4E85-864D-20D631461776}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F4FDCA6-1CC3-4E85-864D-20D631461776}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F4FDCA6-1CC3-4E85-864D-20D631461776}.Release|Any CPU.Build.0 = Release|Any CPU
+		{288D430C-A881-4065-94D9-94C1E1466733}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{288D430C-A881-4065-94D9-94C1E1466733}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{288D430C-A881-4065-94D9-94C1E1466733}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{288D430C-A881-4065-94D9-94C1E1466733}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

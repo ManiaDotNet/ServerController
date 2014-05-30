@@ -45,9 +45,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ManiaNet.DedicatedServer\ManiaNet.DedicatedServer.csproj">
+    <ProjectReference Include="..\ManiaNet.DedicatedServer.XmlRpc\ManiaNet.DedicatedServer.XmlRpc.csproj">
       <Project>{086bb4ea-e79a-482e-84fc-4ea256ecf4b4}</Project>
-      <Name>ManiaNet.DedicatedServer</Name>
+      <Name>ManiaNet.DedicatedServer.XmlRpc</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
