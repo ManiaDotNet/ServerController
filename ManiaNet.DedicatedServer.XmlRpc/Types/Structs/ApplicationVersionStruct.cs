@@ -41,7 +41,6 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         public string ApiVersion
         {
             get { return apiVersion.Value; }
-            private set { apiVersion.Value = value; }
         }
 
         /// <summary>
@@ -50,7 +49,6 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         public string Build
         {
             get { return build.Value; }
-            private set { build.Value = value; }
         }
 
         /// <summary>
@@ -59,7 +57,6 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         public string Name
         {
             get { return name.Value; }
-            private set { name.Value = value; }
         }
 
         /// <summary>
@@ -68,7 +65,6 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         public string TitleI
         {
             get { return titleId.Value; }
-            private set { titleId.Value = value; }
         }
 
         /// <summary>
@@ -77,7 +73,6 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         public string Version
         {
             get { return version.Value; }
-            private set { version.Value = value; }
         }
 
         /// <summary>

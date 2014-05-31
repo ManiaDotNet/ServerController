@@ -6,34 +6,21 @@ using System.Xml.Linq;
 namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
 {
     /// <summary>
-    /// Represents the struct returned by the GetStatus method call.
+    /// Represents the structs returned by the GetBlackList, GetGuestList, and GetIgnoreList method calls.
     /// </summary>
-    public sealed class StatusStruct : BaseStruct<StatusStruct>
+    public sealed class LoginStruct : BaseStruct<LoginStruct>
     {
         /// <summary>
-        /// Backing field for the Code property.
+        /// Backing field for the Login property.
         /// </summary>
-        private XmlRpcI4 code = new XmlRpcI4();
+        private XmlRpcString login = new XmlRpcString();
 
         /// <summary>
-        /// Backing field for the Name property.
+        /// Gets the Login of the player.
         /// </summary>
-        private XmlRpcString name = new XmlRpcString();
-
-        /// <summary>
-        /// Gets the Code for the current status of the server application.
-        /// </summary>
-        public int Code
+        public string Login
         {
-            get { return code.Value; }
-        }
-
-        /// <summary>
-        /// Gets the Name for the current status of the server application.
-        /// </summary>
-        public string Name
-        {
-            get { return name.Value; }
+            get { return login.Value; }
         }
 
         /// <summary>
@@ -42,9 +29,8 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         /// <returns>The generated XElement.</returns>
         public override XElement GenerateXml()
         {
-            return new XElement(XName.Get(MemberElement),
-                makeMemberElement("Code", code.GenerateXml()),
-                makeMemberElement("Name", name.GenerateXml()));
+            return new XElement(XName.Get(ElementName),
+                makeMemberElement("Login", login.GenerateXml()));
         }
 
         /// <summary>
@@ -52,7 +38,7 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         /// </summary>
         /// <param name="xElement">The struct element storing the information.</param>
         /// <returns>Itself, for convenience.</returns>
-        public override StatusStruct ParseXml(XElement xElement)
+        public override LoginStruct ParseXml(XElement xElement)
         {
             checkName(xElement);
 
@@ -64,12 +50,8 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
 
                 switch (getMemberName(member))
                 {
-                    case "Name":
-                        name.ParseXml(getNormalizedStringValueContent(value, name.ElementName));
-                        break;
-
-                    case "Code":
-                        code.ParseXml(value);
+                    case "Login":
+                        login.ParseXml(getNormalizedStringValueContent(value, login.ElementName));
                         break;
 
                     default:

@@ -46,8 +46,14 @@
     <Compile Include="IXmlRpcClient.cs" />
     <Compile Include="MethodCalls\XmlRpcAuthenticate.cs" />
     <Compile Include="Types\Structs\ApplicationVersionStruct.cs" />
+    <Compile Include="Types\Structs\BanInfoStruct.cs" />
     <Compile Include="Types\Structs\BaseStruct.cs" />
+    <Compile Include="Types\Structs\CallVoteRatioStruct.cs" />
     <Compile Include="Types\Structs\CallVoteStruct.cs" />
+    <Compile Include="Types\Structs\CallVoteTimeOutStruct.cs" />
+    <Compile Include="Types\Structs\LanguageMessageStruct.cs" />
+    <Compile Include="Types\Structs\LoginStruct.cs" />
+    <Compile Include="Types\Structs\ManiaLinkPageAnswer.cs" />
     <Compile Include="Types\Structs\StatusStruct.cs" />
     <Compile Include="Types\XmlRpcArray.cs" />
     <Compile Include="Types\XmlRpcBase64.cs" />

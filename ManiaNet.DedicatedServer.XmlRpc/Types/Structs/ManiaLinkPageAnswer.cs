@@ -6,47 +6,47 @@ using System.Xml.Linq;
 namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
 {
     /// <summary>
-    /// Represents the struct returned by the GetCurrentCallVote method call.
+    /// Represents the structs returned from the GetManialinkPageAnswers method call.
     /// </summary>
-    public sealed class CallVoteStruct : BaseStruct<CallVoteStruct>
+    public sealed class ManialinkPageAnswer : BaseStruct<ManialinkPageAnswer>
     {
         /// <summary>
-        /// Backing field for the CallerLogin property.
+        /// Backing field for the Login property.
         /// </summary>
-        private XmlRpcString callerLogin = new XmlRpcString();
+        private XmlRpcString login = new XmlRpcString();
 
         /// <summary>
-        /// Backing field for the CmdName property.
+        /// Backing field for the PlayerId property.
         /// </summary>
-        private XmlRpcString cmdName = new XmlRpcString();
+        private XmlRpcInt playerId = new XmlRpcInt(); //Probably actually an i4
 
         /// <summary>
-        /// Backing field for the CmdParam property.
+        /// Backing field for the Result property.
         /// </summary>
-        private XmlRpcString cmdParam = new XmlRpcString();
+        private XmlRpcInt result = new XmlRpcInt();
 
         /// <summary>
-        /// Gets the Login of the player who started the call-vote.
+        /// Gets the login of the player that this page answer is for.
         /// </summary>
-        public string CallerLogin
+        public string Login
         {
-            get { return callerLogin.Value; }
+            get { return login.Value; }
         }
 
         /// <summary>
-        /// Gets the Name of the command that the call-vote is for.
+        /// Gets the id of the player that this page answer is for.
         /// </summary>
-        public string CmdName
+        public int PlayerId
         {
-            get { return cmdName.Value; }
+            get { return playerId.Value; }
         }
 
         /// <summary>
-        /// Gets the parameter of the command that the call-vote is for.
+        /// Gets the answer of the page. 0 means no answer.
         /// </summary>
-        public string CmdParam
+        public int Result
         {
-            get { return cmdParam.Value; }
+            get { return result.Value; }
         }
 
         /// <summary>
@@ -56,9 +56,9 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         public override XElement GenerateXml()
         {
             return new XElement(XName.Get(ElementName),
-                makeMemberElement("CallerLogin", callerLogin.GenerateXml()),
-                makeMemberElement("CmdName", cmdName.GenerateXml()),
-                makeMemberElement("CmdParam", cmdParam.GenerateXml()));
+                makeMemberElement("Login", login.GenerateXml()),
+                makeMemberElement("PlayerId", playerId.GenerateXml()),
+                makeMemberElement("Result", result.GenerateXml()));
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         /// </summary>
         /// <param name="xElement">The struct element storing the information.</param>
         /// <returns>Itself, for convenience.</returns>
-        public override CallVoteStruct ParseXml(XElement xElement)
+        public override ManialinkPageAnswer ParseXml(XElement xElement)
         {
             checkName(xElement);
 
@@ -78,16 +78,16 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
 
                 switch (getMemberName(member))
                 {
-                    case "CallerLogin":
-                        callerLogin.ParseXml(getNormalizedStringValueContent(value, callerLogin.ElementName));
+                    case "Login":
+                        login.ParseXml(getNormalizedStringValueContent(value, login.ElementName));
                         break;
 
-                    case "CmdName":
-                        cmdName.ParseXml(getNormalizedStringValueContent(value, cmdName.ElementName));
+                    case "PlayerId":
+                        playerId.ParseXml(value);
                         break;
 
-                    case "CmdParam":
-                        cmdParam.ParseXml(getNormalizedStringValueContent(value, cmdParam.ElementName));
+                    case "Result":
+                        result.ParseXml(value);
                         break;
 
                     default:

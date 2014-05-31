@@ -6,47 +6,47 @@ using System.Xml.Linq;
 namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
 {
     /// <summary>
-    /// Represents the struct returned by the GetCurrentCallVote method call.
+    /// Represents the structs returned by the GetBanList method call.
     /// </summary>
-    public sealed class CallVoteStruct : BaseStruct<CallVoteStruct>
+    public sealed class BanInfoStruct : BaseStruct<BanInfoStruct>
     {
         /// <summary>
-        /// Backing field for the CallerLogin property.
+        /// Backing field for the ClientName property.
         /// </summary>
-        private XmlRpcString callerLogin = new XmlRpcString();
+        private XmlRpcString clientName = new XmlRpcString();
 
         /// <summary>
-        /// Backing field for the CmdName property.
+        /// Backing field for the IPAddress property.
         /// </summary>
-        private XmlRpcString cmdName = new XmlRpcString();
+        private XmlRpcString ipAddress = new XmlRpcString();
 
         /// <summary>
-        /// Backing field for the CmdParam property.
+        /// Backing field for the Login property.
         /// </summary>
-        private XmlRpcString cmdParam = new XmlRpcString();
+        private XmlRpcString login = new XmlRpcString();
 
         /// <summary>
-        /// Gets the Login of the player who started the call-vote.
+        /// Gets the ClientName of the banned player.
         /// </summary>
-        public string CallerLogin
+        public string ClientName
         {
-            get { return callerLogin.Value; }
+            get { return clientName.Value; }
         }
 
         /// <summary>
-        /// Gets the Name of the command that the call-vote is for.
+        /// Gets the IP-address of the banned player.
         /// </summary>
-        public string CmdName
+        public string IPAddress
         {
-            get { return cmdName.Value; }
+            get { return ipAddress.Value; }
         }
 
         /// <summary>
-        /// Gets the parameter of the command that the call-vote is for.
+        /// Gets the Login of the banned player.
         /// </summary>
-        public string CmdParam
+        public string Login
         {
-            get { return cmdParam.Value; }
+            get { return login.Value; }
         }
 
         /// <summary>
@@ -56,9 +56,9 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         public override XElement GenerateXml()
         {
             return new XElement(XName.Get(ElementName),
-                makeMemberElement("CallerLogin", callerLogin.GenerateXml()),
-                makeMemberElement("CmdName", cmdName.GenerateXml()),
-                makeMemberElement("CmdParam", cmdParam.GenerateXml()));
+                makeMemberElement("Login", login.GenerateXml()),
+                makeMemberElement("ClientName", clientName.GenerateXml()),
+                makeMemberElement("IPAddress", ipAddress.GenerateXml()));
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         /// </summary>
         /// <param name="xElement">The struct element storing the information.</param>
         /// <returns>Itself, for convenience.</returns>
-        public override CallVoteStruct ParseXml(XElement xElement)
+        public override BanInfoStruct ParseXml(XElement xElement)
         {
             checkName(xElement);
 
@@ -78,16 +78,16 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
 
                 switch (getMemberName(member))
                 {
-                    case "CallerLogin":
-                        callerLogin.ParseXml(getNormalizedStringValueContent(value, callerLogin.ElementName));
+                    case "Login":
+                        login.ParseXml(getNormalizedStringValueContent(value, login.ElementName));
                         break;
 
-                    case "CmdName":
-                        cmdName.ParseXml(getNormalizedStringValueContent(value, cmdName.ElementName));
+                    case "ClientName":
+                        clientName.ParseXml(getNormalizedStringValueContent(value, clientName.ElementName));
                         break;
 
-                    case "CmdParam":
-                        cmdParam.ParseXml(getNormalizedStringValueContent(value, cmdParam.ElementName));
+                    case "IPAddress":
+                        ipAddress.ParseXml(getNormalizedStringValueContent(value, ipAddress.ElementName));
                         break;
 
                     default:

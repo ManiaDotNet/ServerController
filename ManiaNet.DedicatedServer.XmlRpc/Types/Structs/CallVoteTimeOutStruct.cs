@@ -6,34 +6,34 @@ using System.Xml.Linq;
 namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
 {
     /// <summary>
-    /// Represents the struct returned by the GetStatus method call.
+    /// Represents the struct returned by the GetCallVoteTimeOut method call.
     /// </summary>
-    public sealed class StatusStruct : BaseStruct<StatusStruct>
+    public sealed class CallVoteTimeOutStruct : BaseStruct<CallVoteTimeOutStruct>
     {
         /// <summary>
-        /// Backing field for the Code property.
+        /// Backing field for the CurrentValue property.
         /// </summary>
-        private XmlRpcI4 code = new XmlRpcI4();
+        private XmlRpcI4 currentValue = new XmlRpcI4();
 
         /// <summary>
-        /// Backing field for the Name property.
+        /// Backing field for the NextValue property.
         /// </summary>
-        private XmlRpcString name = new XmlRpcString();
+        private XmlRpcI4 nextValue = new XmlRpcI4();
 
         /// <summary>
-        /// Gets the Code for the current status of the server application.
+        /// Gets the current timeout value for call-votes. In milliseconds.
         /// </summary>
-        public int Code
+        public int CurrentValue
         {
-            get { return code.Value; }
+            get { return currentValue.Value; }
         }
 
         /// <summary>
-        /// Gets the Name for the current status of the server application.
+        /// Gets the next timeout value for call-votes. In milliseconds.
         /// </summary>
-        public string Name
+        public int NextValue
         {
-            get { return name.Value; }
+            get { return nextValue.Value; }
         }
 
         /// <summary>
@@ -42,9 +42,9 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         /// <returns>The generated XElement.</returns>
         public override XElement GenerateXml()
         {
-            return new XElement(XName.Get(MemberElement),
-                makeMemberElement("Code", code.GenerateXml()),
-                makeMemberElement("Name", name.GenerateXml()));
+            return new XElement(XName.Get(ElementName),
+                makeMemberElement("CurrentValue", currentValue.GenerateXml()),
+                makeMemberElement("NextValue", nextValue.GenerateXml()));
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         /// </summary>
         /// <param name="xElement">The struct element storing the information.</param>
         /// <returns>Itself, for convenience.</returns>
-        public override StatusStruct ParseXml(XElement xElement)
+        public override CallVoteTimeOutStruct ParseXml(XElement xElement)
         {
             checkName(xElement);
 
@@ -64,12 +64,12 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
 
                 switch (getMemberName(member))
                 {
-                    case "Name":
-                        name.ParseXml(getNormalizedStringValueContent(value, name.ElementName));
+                    case "CurrentValue":
+                        currentValue.ParseXml(value);
                         break;
 
-                    case "Code":
-                        code.ParseXml(value);
+                    case "NextValue":
+                        nextValue.ParseXml(value);
                         break;
 
                     default:

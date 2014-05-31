@@ -19,7 +19,7 @@ namespace ManiaNet.ConsoleTesting
 
             Thread.Sleep(250);
 
-            xmlRpcConnection.SendRequest(XmlRpcConstants.XmlDeclaration + XmlRpcConstants.MethodCallAndNameOpening + "GetCurrentCallVote" + XmlRpcConstants.MethodNameClosingAndParamsOpening + XmlRpcConstants.ParamsAndMethodCallClosing);
+            xmlRpcConnection.SendRequest(XmlRpcConstants.XmlDeclaration + XmlRpcConstants.MethodCallAndNameOpening + "GetManialinkPageAnswers" + XmlRpcConstants.MethodNameClosingAndParamsOpening + XmlRpcConstants.ParamsAndMethodCallClosing);
 
             //Console.WriteLine("Setting API Version");
             //Console.WriteLine("Handle: " + xmlRpcConnection.Send(setApiVersionRequest));
