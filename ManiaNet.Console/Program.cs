@@ -3,6 +3,7 @@ using ManiaNet.DedicatedServer.XmlRpc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace ManiaNet.ConsoleTesting
 {
@@ -15,19 +16,16 @@ namespace ManiaNet.ConsoleTesting
 
             ServerController controller = new ServerController(xmlRpcConnection, new ServerController.Config(password: "ManiaNet"));
             controller.Start();
-            //Thread.Sleep(250);
 
-            //Console.WriteLine("Sending listmethods");
-            //xmlRpcConnection.Send(listMethodsRequest);
-            //Thread.Sleep(250);
+            Thread.Sleep(250);
+
+            xmlRpcConnection.SendRequest(XmlRpcConstants.XmlDeclaration + XmlRpcConstants.MethodCallAndNameOpening + "GetCurrentCallVote" + XmlRpcConstants.MethodNameClosingAndParamsOpening + XmlRpcConstants.ParamsAndMethodCallClosing);
 
             //Console.WriteLine("Setting API Version");
             //Console.WriteLine("Handle: " + xmlRpcConnection.Send(setApiVersionRequest));
-            ////Thread.Sleep(250);
 
             //Console.WriteLine("Enabling Callbacks");
             //Console.WriteLine("Handle: " + xmlRpcConnection.Send(allowCallbacksRequest));
-            //Thread.Sleep(250);
 
             Console.ReadLine();
         }

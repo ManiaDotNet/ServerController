@@ -10,7 +10,7 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types
     /// Represents an XmlRpcType containing a xml rpc struct that is derived from <see cref="ManiaNet.DedicatedServer.XmlRpc.Types.Structs.XmlRpcStructBase"/>.
     /// </summary>
     /// <typeparam name="TXmlRpcStruct">The Type of the struct. Also the Type of the Value property.</typeparam>
-    public class XmlRpcStruct<TXmlRpcStruct> : XmlRpcType<TXmlRpcStruct> where TXmlRpcStruct : XmlRpcStructBase<TXmlRpcStruct>, new()
+    public class XmlRpcStruct<TXmlRpcStruct> : XmlRpcType<TXmlRpcStruct> where TXmlRpcStruct : BaseStruct<TXmlRpcStruct>, new()
     {
         /// <summary>
         /// The name of Elements of this type.

@@ -8,8 +8,8 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
     /// <summary>
     /// Abstract base class for all xml rpc structs.
     /// </summary>
-    /// <typeparam name="TXmlRpcStruct">The type of the derivative.</typeparam>
-    public abstract class XmlRpcStructBase<TXmlRpcStruct> where TXmlRpcStruct : XmlRpcStructBase<TXmlRpcStruct>
+    /// <typeparam name="TStruct">The type of the derivative.</typeparam>
+    public abstract class BaseStruct<TStruct> where TStruct : BaseStruct<TStruct>
     {
         public const string ElementName = "struct";
 
@@ -30,7 +30,7 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         /// </summary>
         /// <param name="xElement">The struct element storing the information.</param>
         /// <returns>Itself, for convenience.</returns>
-        public abstract TXmlRpcStruct ParseXml(XElement xElement);
+        public abstract TStruct ParseXml(XElement xElement);
 
         /// <summary>
         /// Checks if an element is a valid member element.

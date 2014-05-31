@@ -41,11 +41,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="MethodCalls\XmlRpcMethodCall.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IXmlRpcClient.cs" />
     <Compile Include="MethodCalls\XmlRpcAuthenticate.cs" />
-    <Compile Include="Types\Structs\XmlRpcApplicationVersionStruct.cs" />
-    <Compile Include="Types\Structs\XmlRpcStructBase.cs" />
+    <Compile Include="Types\Structs\ApplicationVersionStruct.cs" />
+    <Compile Include="Types\Structs\BaseStruct.cs" />
+    <Compile Include="Types\Structs\CallVoteStruct.cs" />
+    <Compile Include="Types\Structs\StatusStruct.cs" />
     <Compile Include="Types\XmlRpcArray.cs" />
     <Compile Include="Types\XmlRpcBase64.cs" />
     <Compile Include="Types\XmlRpcBoolean.cs" />
@@ -63,6 +66,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ServerCallbacks\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Types\Structs\StructParseXml.snippet">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
