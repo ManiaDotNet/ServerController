@@ -5,8 +5,16 @@ using System.Xml.Linq;
 
 namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
 {
+    /// <summary>
+    /// Represents the structs returned by the GetCallVoteRatios and passed to the SetCallVoteRatios method calls.
+    /// </summary>
     public sealed class CallVoteRatioStruct : BaseStruct<CallVoteRatioStruct>
     {
+        /// <summary>
+        /// The ratio for disabled votes.
+        /// </summary>
+        public const int Disabled = -1;
+
         /// <summary>
         /// Backing field for the Command property.
         /// </summary>
@@ -27,15 +35,15 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         }
 
         /// <summary>
-        /// Gets or sets the Ratio for call-votes for this command. Range from 0-1, or -1 for disabled.
+        /// Gets or sets the Ratio for call-votes for this command. Range from 0-1, or Disabled.
         /// </summary>
         public double Ratio
         {
             get { return ratio.Value; }
             set
             {
-                if (value != -1 && (value < 0 || value > 1))
-                    throw new ArgumentOutOfRangeException("value", "Ratio has to be between 0 and 1, or -1.");
+                if (value != Disabled && (value < 0 || value > 1))
+                    throw new ArgumentOutOfRangeException("value", "Ratio has to be between 0 and 1, or Disabled.");
 
                 ratio.Value = value;
             }

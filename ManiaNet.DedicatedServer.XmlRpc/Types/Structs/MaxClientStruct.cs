@@ -5,12 +5,12 @@ using System.Linq;
 namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
 {
     /// <summary>
-    /// Represents the struct returned by the GetCallVoteTimeOut method call.
+    /// Represents the struct returned by the GetMaxPlayers and GetMaxSpectators method calls.
     /// </summary>
-    public sealed class CallVoteTimeOutStruct : I4CurrentAndNextValueStruct<CallVoteTimeOutStruct>
+    public sealed class MaxClientStruct : I4CurrentAndNextValueStruct<MaxClientStruct>
     {
         /// <summary>
-        /// Gets the current call-vote timeout in milliseconds.
+        /// Gets the current maximum number of clients of a type.
         /// </summary>
         public override int CurrentValue
         {
@@ -18,7 +18,7 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         }
 
         /// <summary>
-        /// Gets the next call-vote timeout in milliseconds.
+        /// Gets the next maximum number of clients of a type.
         /// </summary>
         public override int NextValue
         {

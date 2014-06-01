@@ -5,12 +5,14 @@ using System.Linq;
 namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
 {
     /// <summary>
-    /// Represents the struct returned by the GetCallVoteTimeOut method call.
+    /// Represents the struct returned by the GetVehicleNetQuality method call.
     /// </summary>
-    public sealed class CallVoteTimeOutStruct : I4CurrentAndNextValueStruct<CallVoteTimeOutStruct>
+    public sealed class VehicleNetQualityStruct : I4CurrentAndNextValueStruct<VehicleNetQualityStruct>
     {
+        // No idea what exactly the modes are ... of course that's documented nowhere.
+
         /// <summary>
-        /// Gets the current call-vote timeout in milliseconds.
+        /// Gets the current vehicle quality.
         /// </summary>
         public override int CurrentValue
         {
@@ -18,7 +20,7 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
         }
 
         /// <summary>
-        /// Gets the next call-vote timeout in milliseconds.
+        /// Gets the next vehicle quality.
         /// </summary>
         public override int NextValue
         {

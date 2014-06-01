@@ -8,7 +8,7 @@ namespace ManiaNet.DedicatedServer.XmlRpc.Types.Structs
     /// <summary>
     /// Abstract base class for all xml rpc structs.
     /// </summary>
-    /// <typeparam name="TStruct">The type of the derivative.</typeparam>
+    /// <typeparam name="TStruct">The type of the derived struct.</typeparam>
     public abstract class BaseStruct<TStruct> where TStruct : BaseStruct<TStruct>
     {
         public const string ElementName = "struct";
