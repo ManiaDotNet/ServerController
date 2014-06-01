@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.DedicatedServer.XmlRpc", "ManiaNet.DedicatedServer.XmlRpc\ManiaNet.DedicatedServer.XmlRpc.csproj", "{086BB4EA-E79A-482E-84FC-4EA256ECF4B4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.DedicatedServer", "ManiaNet.DedicatedServer\ManiaNet.DedicatedServer.csproj", "{086BB4EA-E79A-482E-84FC-4EA256ECF4B4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.Console", "ManiaNet.Console\ManiaNet.Console.csproj", "{C2253BEF-10A4-426A-B4CE-AC7F11EF7AFC}"
 EndProject

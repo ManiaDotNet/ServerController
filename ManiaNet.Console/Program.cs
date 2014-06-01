@@ -19,7 +19,7 @@ namespace ManiaNet.ConsoleTesting
 
             Thread.Sleep(250);
 
-            xmlRpcConnection.SendRequest(XmlRpcConstants.XmlDeclaration + XmlRpcConstants.MethodCallAndNameOpening + "GetServerOptions" + XmlRpcConstants.MethodNameClosingAndParamsOpening /* + XmlRpcConstants.ParamOpening + "<value><string>banane9dedicated1_172.16.11.22_2351</string></value>" + XmlRpcConstants.ParamClosing */ + XmlRpcConstants.ParamsAndMethodCallClosing);
+            xmlRpcConnection.SendRequest(XmlRpcConstants.XmlDeclaration + XmlRpcConstants.MethodCallAndNameOpening + "GetCurrentGameInfo" + XmlRpcConstants.MethodNameClosingAndParamsOpening /* + XmlRpcConstants.ParamOpening + "<value><string>banane9dedicated1_172.16.11.22_2351</string></value>" + XmlRpcConstants.ParamClosing */ + XmlRpcConstants.ParamsAndMethodCallClosing);
 
             //Console.WriteLine("Setting API Version");
             //Console.WriteLine("Handle: " + xmlRpcConnection.Send(setApiVersionRequest));
