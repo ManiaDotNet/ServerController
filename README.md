@@ -3,7 +3,7 @@ ManiaNet
 
 TrackMania Dedicated Server Controller in C#/.NET
 
--------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------
 
 Based on the code in the [ManiaPlanet Dedicated Server API](https://github.com/maniaplanet/dedicated-server-api/tree/master/libraries/Maniaplanet/DedicatedServer) in PHP,
 the structure seems to be as follows:
@@ -61,7 +61,7 @@ Method responses are send back in XML format.
 For `GBXRemote 2` the XML declaration is preceded by 8 bytes, containing two uints for the length of the response and the handle respectively.
 For `GBXRemote 1` it's only 4 bytes for the length.
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------
 
 The value tag can contain one of the following tags:
 
@@ -81,6 +81,12 @@ The value tag can contain one of the following tags:
 
 * `<base64>` containing data encoded into a base64 string.
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------
 
 The list of methods (without description) can be found [here](https://github.com/Banane9/ManiaNet/blob/master/RPC-Method-List.md) and the official documentation is [here](http://maniaplanet.github.io/documentation//dedicated-server/methods/latest.html).
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+##License##
+
+#####[GLP V2](https://github.com/Banane9/ManiaNet/blob/master/LICENSE.md)#####
