@@ -89,4 +89,4 @@ The list of methods (without description) can be found [here](https://github.com
 
 ##License##
 
-#####[GLP V2](https://github.com/Banane9/ManiaNet/master/LICENSE.md)#####
+#####[GLP V2](https://github.com/Banane9/ManiaNet/blob/master/LICENSE.md)#####
