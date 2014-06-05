@@ -36,7 +36,7 @@ namespace ManiaNet.DedicatedServer.Controller
 
         private bool authenticate()
         {
-            var methodCall = new XmlRpcAuthenticate(Configuration.Login, Configuration.Password);
+            var methodCall = new Authenticate(Configuration.Login, Configuration.Password);
             string response = awaitResponse(xmlRpcClient.SendRequest(methodCall.GenerateXml().ToString()), 2000);
             methodCall.ParseXml(XDocument.Parse(response).Root);
             return methodCall.HadFault ? false : methodCall.Returned;
