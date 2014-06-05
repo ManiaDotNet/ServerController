@@ -1,6 +1,5 @@
 ﻿using ManiaNet.DedicatedServer.XmlRpc;
 using ManiaNet.DedicatedServer.XmlRpc.MethodCalls;
-using ManiaNet.DedicatedServer.XmlRpc.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,9 +36,10 @@ namespace ManiaNet.DedicatedServer.Controller
 
         private bool authenticate()
         {
-            string response = awaitResponse(xmlRpcClient.SendRequest(new XmlRpcAuthenticate(Configuration.Login, Configuration.Password).GetXml()), 2000);
-            var boolResponse = new XmlRpcBoolean().ParseXml(XDocument.Parse(response).Root.Descendants(XName.Get("boolean")).First());
-            return boolResponse.Value;
+            var methodCall = new XmlRpcAuthenticate(Configuration.Login, Configuration.Password);
+            string response = awaitResponse(xmlRpcClient.SendRequest(methodCall.GenerateXml().ToString()), 2000);
+            methodCall.ParseXml(XDocument.Parse(response).Root);
+            return methodCall.HadFault ? false : methodCall.Returned;
         }
 
         /// <summary>
