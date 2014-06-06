@@ -1,16 +1,19 @@
 ﻿using ManiaNet.DedicatedServer.XmlRpc;
 using ManiaNet.DedicatedServer.XmlRpc.MethodCalls;
+using ManiaNet.DedicatedServer.XmlRpc.Types;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace ManiaNet.DedicatedServer.Controller
 {
-    public class ServerController
+    public class ServerController : IDisposable
     {
-        private Dictionary<uint, string> methodResponses = new Dictionary<uint, string>();
+        private ConcurrentDictionary<uint, string> methodResponses = new ConcurrentDictionary<uint, string>();
         private IXmlRpcClient xmlRpcClient;
 
         public Config Configuration { get; private set; }
@@ -23,12 +26,52 @@ namespace ManiaNet.DedicatedServer.Controller
             Configuration = config;
         }
 
+        /// <summary>
+        /// Sends a method call to the server and waits a maximum of the given timeout before returning whether the call returned (regardless of whether successful or not).
+        /// </summary>
+        /// <typeparam name="TReturn">The method call's returned XmlRpcType.</typeparam>
+        /// <typeparam name="TReturnBase">The method call's type of the returned value.</typeparam>
+        /// <param name="methodCall">The method call to be executed.</param>
+        /// <param name="timeout">The maximum time in milliseconds to wait for a response.</param>
+        /// <returns>Whether the call was returned (regardless of whether successful or not).</returns>
+        public bool CallMethod<TReturn, TReturnBase>(MethodCall<TReturn, TReturnBase> methodCall, int timeout) where TReturn : XmlRpcType<TReturnBase>, new()
+        {
+            uint methodHandle = xmlRpcClient.SendRequest(methodCall.GenerateXml().ToString());
+
+            if (!methodResponses.TryAdd(methodHandle, null))
+                return false;
+
+            string response = awaitResponse(methodHandle, timeout);
+
+            if (string.IsNullOrEmpty(response))
+                return false;
+
+            try
+            {
+                methodCall.ParseXml(XDocument.Parse(response, LoadOptions.None).Root);
+            }
+            catch { return false; }
+
+            return methodCall.IsCompleted;
+        }
+
+        public void Dispose()
+        {
+            xmlRpcClient.Dispose();
+        }
+
+        /// <summary>
+        /// Starts the controller.
+        /// </summary>
         public void Start()
         {
             xmlRpcClient.StartReceive();
             authenticate();
         }
 
+        /// <summary>
+        /// Stops the controller.
+        /// </summary>
         public void Stop()
         {
             xmlRpcClient.EndReceive();
@@ -37,9 +80,11 @@ namespace ManiaNet.DedicatedServer.Controller
         private bool authenticate()
         {
             var methodCall = new Authenticate(Configuration.Login, Configuration.Password);
-            string response = awaitResponse(xmlRpcClient.SendRequest(methodCall.GenerateXml().ToString()), 2000);
-            methodCall.ParseXml(XDocument.Parse(response).Root);
-            return methodCall.HadFault ? false : methodCall.Returned;
+
+            if (!CallMethod(methodCall, 2000))
+                return false;
+
+            return !methodCall.IsCompleted ? false : methodCall.HadFault ? false : methodCall.ReturnValue;
         }
 
         /// <summary>
@@ -47,21 +92,24 @@ namespace ManiaNet.DedicatedServer.Controller
         /// </summary>
         /// <param name="handle">The handle of the method call for which the response is wanted.</param>
         /// <param name="timeout">The maximum number of ms that it waits before returning an empty string.</param>
-        /// <returns>The xml formatted method response or an empty string if it tookmore than timeout ms.</returns>
+        /// <returns>The xml formatted method response or an empty string if it took more than timeout ms.</returns>
         private string awaitResponse(uint handle, int timeout)
         {
             int timeSpent = 0;
-            while (!methodResponses.ContainsKey(handle) && timeSpent < timeout)
+            if (!methodResponses.ContainsKey(handle))
+                return string.Empty;
+
+            while (methodResponses[handle] == null && timeSpent < timeout)
             {
                 Thread.Sleep(10);
                 timeSpent += 10;
             }
 
-            if (methodResponses.ContainsKey(handle))
+            if (methodResponses[handle] != null)
             {
-                string response = methodResponses[handle];
-                methodResponses.Remove(handle);
-                return response;
+                string response;
+                if (methodResponses.TryRemove(handle, out response))
+                    return response;
             }
 
             return string.Empty;
@@ -69,17 +117,21 @@ namespace ManiaNet.DedicatedServer.Controller
 
         private void xmlRpcClient_MethodResponse(IXmlRpcClient sender, uint requestHandle, string methodResponse)
         {
-            methodResponses.Add(requestHandle, methodResponse);
+            if (methodResponses.ContainsKey(requestHandle))
+                methodResponses[requestHandle] = methodResponse;
         }
 
         private void xmlRpcClient_ServerCallback(IXmlRpcClient sender, string serverCallback)
         {
-            XElement methodCall = XDocument.Parse(serverCallback, LoadOptions.None).Root;
-            string methodName = methodCall.Element(XName.Get("name")).Value;
-            switch (methodName)
-            {
-                //Swith to the right method name and call the event.
-            }
+            Task.Factory.StartNew(() =>
+                {
+                    XElement methodCall = XDocument.Parse(serverCallback, LoadOptions.None).Root;
+                    string methodName = methodCall.Element(XName.Get("name")).Value;
+                    switch (methodName)
+                    {
+                        //Swith to the right method name and call the event.
+                    }
+                });
         }
 
         /// <summary>
