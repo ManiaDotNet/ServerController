@@ -150,14 +150,21 @@ namespace ManiaNet.DedicatedServer.Controller
             public string Password { get; private set; }
 
             /// <summary>
+            /// Gets the path(s) to the folders used to load plugins from.
+            /// </summary>
+            public IEnumerable<string> PluginFolders { get; private set; }
+
+            /// <summary>
             /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.ServerController.Config"/> class with the given Login and Password.
             /// </summary>
             /// <param name="login">The Login that the controller authenticates with; SuperAdmin by default.</param>
             /// <param name="password">The Password that the controller authenticates with; SuperAdmin by default.</param>
-            public Config(string login = "SuperAdmin", string password = "SuperAdmin")
+            /// <param name="pluginFolders">The path(s) to the folders used to load plugins from; { "plugins" } by default.</param>
+            public Config(string login = "SuperAdmin", string password = "SuperAdmin", IEnumerable<string> pluginFolders = null)
             {
                 Login = login;
                 Password = password;
+                PluginFolders = pluginFolders ?? new string[] { "plugins" };
             }
         }
     }

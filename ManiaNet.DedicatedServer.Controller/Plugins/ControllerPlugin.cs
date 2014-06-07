@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SharpPlugins;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,7 +8,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
     /// <summary>
     /// Abstract base class for all ControllerPlugins.
     /// </summary>
-    public abstract partial class ControllerPlugin
+    public abstract partial class ControllerPlugin : PluginBase
     {
         /// <summary>
         /// Gets called when the plugin is loaded.
@@ -15,6 +16,12 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// </summary>
         /// <param name="controller">The controller loading the plugin.</param>
         public abstract void Load(ServerController controller);
+
+        /// <summary>
+        /// The main method of the plugin.
+        /// Gets run in its own thread by the controller and should stop gracefully on a <see cref="System.Thread.ThreadAbortExceptions"/>.
+        /// </summary>
+        public abstract void Run();
 
         /// <summary>
         /// Gets called when the plugin is unloaded.
