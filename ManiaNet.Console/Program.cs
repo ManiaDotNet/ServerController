@@ -19,7 +19,7 @@ namespace ManiaNet.ConsoleTesting
 
             Thread.Sleep(250);
 
-            xmlRpcConnection.SendRequest(XmlRpcConstants.XmlDeclaration + XmlRpcConstants.MethodCallAndNameOpening + "system.methodSignature" + XmlRpcConstants.MethodNameClosingAndParamsOpening + XmlRpcConstants.ParamOpening + "<value><string>system.methodSignature</string></value>" + XmlRpcConstants.ParamClosing  /* + XmlRpcConstants.ParamOpening + "<value><int>0</int></value>" + XmlRpcConstants.ParamClosing */ + XmlRpcConstants.ParamsAndMethodCallClosing);
+            xmlRpcConnection.SendRequest(XmlRpcConstants.XmlDeclaration + XmlRpcConstants.MethodCallAndNameOpening + "system.methodHelp" + XmlRpcConstants.MethodNameClosingAndParamsOpening + XmlRpcConstants.ParamOpening + "<value><string>system.methodSignature</string></value>" + XmlRpcConstants.ParamClosing  /* + XmlRpcConstants.ParamOpening + "<value><int>0</int></value>" + XmlRpcConstants.ParamClosing */ + XmlRpcConstants.ParamsAndMethodCallClosing);
 
             //Console.WriteLine("Setting API Version");
             //Console.WriteLine("Handle: " + xmlRpcConnection.Send(setApiVersionRequest));
