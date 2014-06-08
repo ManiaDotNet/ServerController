@@ -15,7 +15,8 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// Use this to add your methods to the controller's events and load your saved data.
         /// </summary>
         /// <param name="controller">The controller loading the plugin.</param>
-        public abstract void Load(ServerController controller);
+        /// <returns>Whether it loaded successfully or not.</returns>
+        public abstract bool Load(ServerController controller);
 
         /// <summary>
         /// The main method of the plugin.
@@ -27,6 +28,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// Gets called when the plugin is unloaded.
         /// Use this to save your data.
         /// </summary>
-        public abstract void Unload();
+        /// <returns>Whether it unloaded successfully or not.</returns>
+        public abstract bool Unload();
     }
 }

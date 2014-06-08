@@ -1,6 +1,8 @@
-﻿using ManiaNet.DedicatedServer.XmlRpc;
+﻿using ManiaNet.DedicatedServer.Controller.Plugins;
+using ManiaNet.DedicatedServer.XmlRpc;
 using ManiaNet.DedicatedServer.XmlRpc.MethodCalls;
 using ManiaNet.DedicatedServer.XmlRpc.Types;
+using SharpPlugins;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,15 +16,19 @@ namespace ManiaNet.DedicatedServer.Controller
     public class ServerController : IDisposable
     {
         private ConcurrentDictionary<uint, string> methodResponses = new ConcurrentDictionary<uint, string>();
+        private IEnumerable<Thread> pluginThreads;
         private IXmlRpcClient xmlRpcClient;
 
         public Config Configuration { get; private set; }
+
+        public IEnumerable<ControllerPlugin> Plugins { get; private set; }
 
         public ServerController(IXmlRpcClient xmlRpcClient, Config config)
         {
             this.xmlRpcClient = xmlRpcClient;
             this.xmlRpcClient.MethodResponse += xmlRpcClient_MethodResponse;
             this.xmlRpcClient.ServerCallback += xmlRpcClient_ServerCallback;
+
             Configuration = config;
         }
 
@@ -67,6 +73,15 @@ namespace ManiaNet.DedicatedServer.Controller
         {
             xmlRpcClient.StartReceive();
             authenticate();
+            loadPlugins();
+            pluginThreads = Plugins.Select(plugin =>
+                {
+                    Thread thread = new Thread(plugin.Run);
+                    thread.Name = xmlRpcClient.Name + " " + ControllerPlugin.GetName(plugin.GetType());
+                    thread.IsBackground = true;
+                    thread.Start();
+                    return thread;
+                });
         }
 
         /// <summary>
@@ -74,6 +89,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// </summary>
         public void Stop()
         {
+            unloadPlugins();
             xmlRpcClient.EndReceive();
         }
 
@@ -113,6 +129,31 @@ namespace ManiaNet.DedicatedServer.Controller
             }
 
             return string.Empty;
+        }
+
+        private void loadPlugins()
+        {
+            var pluginTypes = PluginLoader.LoadPluginsFromFolders<ControllerPlugin>(Configuration.PluginFolders);
+            Plugins = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes);
+
+            Console.WriteLine("Loading Plugins...");
+            foreach (var plugin in Plugins)
+            {
+                Console.Write(ControllerPlugin.GetName(plugin.GetType()) + " ... ");
+                Console.WriteLine(plugin.Load(this) ? "OK" : "Failed");
+            }
+            Console.WriteLine("Done");
+        }
+
+        private void unloadPlugins()
+        {
+            Console.WriteLine("Unloading Plugins...");
+            foreach (var plugin in Plugins)
+            {
+                Console.Write(ControllerPlugin.GetName(plugin.GetType()) + " ... ");
+                Console.WriteLine(plugin.Unload() ? "OK" : "Failed");
+            }
+            Console.WriteLine("Done");
         }
 
         private void xmlRpcClient_MethodResponse(IXmlRpcClient sender, uint requestHandle, string methodResponse)

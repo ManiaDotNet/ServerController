@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.DedicatedServer.Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.UI.WPF", "ManiaNet.UI.WPF\ManiaNet.UI.WPF.csproj", "{288D430C-A881-4065-94D9-94C1E1466733}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChallengeAdvisor", "ChallengeAdvisor\ChallengeAdvisor.csproj", "{578A629F-851A-4A94-B7A6-8EF9F0FA8B4B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,10 @@ Global
 		{288D430C-A881-4065-94D9-94C1E1466733}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{288D430C-A881-4065-94D9-94C1E1466733}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{288D430C-A881-4065-94D9-94C1E1466733}.Release|Any CPU.Build.0 = Release|Any CPU
+		{578A629F-851A-4A94-B7A6-8EF9F0FA8B4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{578A629F-851A-4A94-B7A6-8EF9F0FA8B4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{578A629F-851A-4A94-B7A6-8EF9F0FA8B4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{578A629F-851A-4A94-B7A6-8EF9F0FA8B4B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
