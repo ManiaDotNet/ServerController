@@ -167,7 +167,7 @@ namespace ManiaNet.DedicatedServer.Controller
             Task.Factory.StartNew(() =>
                 {
                     XElement methodCall = XDocument.Parse(serverCallback, LoadOptions.None).Root;
-                    string methodName = methodCall.Element(XName.Get("name")).Value;
+                    string methodName = methodCall.Element(XName.Get("methodName")).Value;
                     switch (methodName)
                     {
                         //Swith to the right method name and call the event.
