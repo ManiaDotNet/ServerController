@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.DedicatedServer.Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChallengeAdvisor", "ChallengeAdvisor\ChallengeAdvisor.csproj", "{578A629F-851A-4A94-B7A6-8EF9F0FA8B4B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.Manialink", "ManiaNet.Manialink\ManiaNet.Manialink.csproj", "{4C53FDB9-9A8D-4B36-B789-1C4EEAFFB83F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,10 @@ Global
 		{578A629F-851A-4A94-B7A6-8EF9F0FA8B4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{578A629F-851A-4A94-B7A6-8EF9F0FA8B4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{578A629F-851A-4A94-B7A6-8EF9F0FA8B4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C53FDB9-9A8D-4B36-B789-1C4EEAFFB83F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C53FDB9-9A8D-4B36-B789-1C4EEAFFB83F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C53FDB9-9A8D-4B36-B789-1C4EEAFFB83F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C53FDB9-9A8D-4B36-B789-1C4EEAFFB83F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
