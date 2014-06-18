@@ -16,12 +16,12 @@ namespace ManiaNet.DedicatedServer.Controller
     public class ServerController : IDisposable
     {
         private ConcurrentDictionary<uint, string> methodResponses = new ConcurrentDictionary<uint, string>();
-        private IEnumerable<Thread> pluginThreads;
+        private List<Thread> pluginThreads;
         private IXmlRpcClient xmlRpcClient;
 
         public Config Configuration { get; private set; }
 
-        public IEnumerable<ControllerPlugin> Plugins { get; private set; }
+        public List<ControllerPlugin> Plugins { get; private set; }
 
         public ServerController(IXmlRpcClient xmlRpcClient, Config config)
         {
@@ -81,7 +81,7 @@ namespace ManiaNet.DedicatedServer.Controller
                     thread.IsBackground = true;
                     thread.Start();
                     return thread;
-                });
+                }).ToList();
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace ManiaNet.DedicatedServer.Controller
         private void loadPlugins()
         {
             var pluginTypes = PluginLoader.LoadPluginsFromFolders<ControllerPlugin>(Configuration.PluginFolders);
-            Plugins = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes);
+            Plugins = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes).ToList();
 
             Console.WriteLine("Loading Plugins...");
             foreach (var plugin in Plugins)

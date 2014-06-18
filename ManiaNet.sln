@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.DedicatedServer", "ManiaNet.DedicatedServer\ManiaNet.DedicatedServer.csproj", "{086BB4EA-E79A-482E-84FC-4EA256ECF4B4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaNet.Console", "ManiaNet.Console\ManiaNet.Console.csproj", "{C2253BEF-10A4-426A-B4CE-AC7F11EF7AFC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{578A629F-851A-4A94-B7A6-8EF9F0FA8B4B} = {578A629F-851A-4A94-B7A6-8EF9F0FA8B4B}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D19FAE22-6EE3-43F4-89F2-91EA8F8CFA72}"
 	ProjectSection(SolutionItems) = preProject
