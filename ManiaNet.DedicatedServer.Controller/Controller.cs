@@ -134,26 +134,32 @@ namespace ManiaNet.DedicatedServer.Controller
 
         private void loadPlugins()
         {
-            var pluginTypes = PluginLoader.LoadPluginsFromFolders<ControllerPlugin>(Configuration.PluginFolders);
-            Plugins = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes).ToList();
-
             Console.WriteLine("Loading Plugins...");
-            foreach (var plugin in Plugins)
+
+            var pluginTypes = PluginLoader.LoadPluginsFromFolders<ControllerPlugin>(Configuration.PluginFolders);
+
+            Plugins = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes).Select(plugin =>
             {
                 Console.Write(ControllerPlugin.GetName(plugin.GetType()) + " ... ");
-                Console.WriteLine(plugin.Load(this) ? "OK" : "Failed");
-            }
+                bool success = plugin.Load(this);
+                Console.WriteLine(success ? "OK" : "Failed");
+                return new { Plugin = plugin, Success = success };
+            })
+            .Where(loadedPlugin => loadedPlugin.Success).Select(loadedPlugin => loadedPlugin.Plugin).ToList();
+
             Console.WriteLine("Done");
         }
 
         private void unloadPlugins()
         {
             Console.WriteLine("Unloading Plugins...");
+
             foreach (var plugin in Plugins)
             {
                 Console.Write(ControllerPlugin.GetName(plugin.GetType()) + " ... ");
                 Console.WriteLine(plugin.Unload() ? "OK" : "Failed");
             }
+
             Console.WriteLine("Done");
         }
 
