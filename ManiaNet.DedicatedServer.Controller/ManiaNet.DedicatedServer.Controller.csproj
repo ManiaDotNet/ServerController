@@ -43,6 +43,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="XmlRpc">
+      <HintPath>..\..\..\..\..\..\..\Programming\Projects\XmlRpc\XmlRpc\bin\Release\XmlRpc.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controller.cs" />

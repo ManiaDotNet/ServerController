@@ -35,9 +35,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SharpPlugins">
-      <HintPath>..\..\..\..\..\..\..\Programming\Projects\SharpPlugins\SharpPlugins\bin\Release\SharpPlugins.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -45,6 +42,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="XmlRpc">
+      <HintPath>..\..\..\..\..\..\..\Programming\Projects\XmlRpc\XmlRpc\bin\Release\XmlRpc.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />

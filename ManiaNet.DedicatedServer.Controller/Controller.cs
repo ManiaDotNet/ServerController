@@ -1,7 +1,5 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Plugins;
-using ManiaNet.DedicatedServer.XmlRpc;
 using ManiaNet.DedicatedServer.XmlRpc.MethodCalls;
-using ManiaNet.DedicatedServer.XmlRpc.Types;
 using SharpPlugins;
 using System;
 using System.Collections.Concurrent;
@@ -10,6 +8,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using XmlRpc;
+using XmlRpc.MethodCalls;
+using XmlRpc.Types;
 
 namespace ManiaNet.DedicatedServer.Controller
 {
