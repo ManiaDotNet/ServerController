@@ -17,12 +17,11 @@ namespace ManiaNet.DedicatedServer.Controller
     public class ServerController : IDisposable
     {
         private ConcurrentDictionary<uint, string> methodResponses = new ConcurrentDictionary<uint, string>();
+        private Dictionary<string, ControllerPlugin> plugins = new Dictionary<string, ControllerPlugin>();
         private List<Thread> pluginThreads;
         private IXmlRpcClient xmlRpcClient;
 
         public Config Configuration { get; private set; }
-
-        public List<ControllerPlugin> Plugins { get; private set; }
 
         public ServerController(IXmlRpcClient xmlRpcClient, Config config)
         {
@@ -68,6 +67,16 @@ namespace ManiaNet.DedicatedServer.Controller
         }
 
         /// <summary>
+        /// Gets whether the plugin with the given identifier is loaded or not.
+        /// </summary>
+        /// <param name="identifier">The identifier to check.</param>
+        /// <returns>Whether the plugin is loaded.</returns>
+        public bool IsPluginLoaded(string identifier)
+        {
+            return plugins.ContainsKey(identifier);
+        }
+
+        /// <summary>
         /// Starts the controller.
         /// </summary>
         public void Start()
@@ -75,7 +84,7 @@ namespace ManiaNet.DedicatedServer.Controller
             xmlRpcClient.StartReceive();
             authenticate();
             loadPlugins();
-            pluginThreads = Plugins.Select(plugin =>
+            pluginThreads = plugins.Values.Select(plugin =>
                 {
                     Thread thread = new Thread(plugin.Run);
                     thread.Name = xmlRpcClient.Name + " " + ControllerPlugin.GetName(plugin.GetType());
@@ -138,14 +147,16 @@ namespace ManiaNet.DedicatedServer.Controller
 
             var pluginTypes = PluginLoader.LoadPluginsFromFolders<ControllerPlugin>(Configuration.PluginFolders);
 
-            Plugins = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes).Select(plugin =>
+            plugins = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes).Select(plugin =>
             {
                 Console.Write(ControllerPlugin.GetName(plugin.GetType()) + " ... ");
                 bool success = plugin.Load(this);
                 Console.WriteLine(success ? "OK" : "Failed");
                 return new { Plugin = plugin, Success = success };
             })
-            .Where(loadedPlugin => loadedPlugin.Success).Select(loadedPlugin => loadedPlugin.Plugin).ToList();
+            .Where(loadedPlugin => loadedPlugin.Success)
+            .Select(loadedPlugin => loadedPlugin.Plugin)
+            .ToDictionary(plugin => ControllerPlugin.GetIdentifier(plugin.GetType()));
 
             Console.WriteLine("Done");
         }
@@ -154,7 +165,7 @@ namespace ManiaNet.DedicatedServer.Controller
         {
             Console.WriteLine("Unloading Plugins...");
 
-            foreach (var plugin in Plugins)
+            foreach (var plugin in plugins.Values)
             {
                 Console.Write(ControllerPlugin.GetName(plugin.GetType()) + " ... ");
                 Console.WriteLine(plugin.Unload() ? "OK" : "Failed");
