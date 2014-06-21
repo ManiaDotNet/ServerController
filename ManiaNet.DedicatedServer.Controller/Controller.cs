@@ -76,6 +76,14 @@ namespace ManiaNet.DedicatedServer.Controller
             return plugins.ContainsKey(identifier);
         }
 
+        public void ReloadPlugins()
+        {
+            stopPlugins();
+            unloadPlugins();
+            loadPlugins();
+            startPlugins();
+        }
+
         /// <summary>
         /// Starts the controller.
         /// </summary>
@@ -84,14 +92,7 @@ namespace ManiaNet.DedicatedServer.Controller
             xmlRpcClient.StartReceive();
             authenticate();
             loadPlugins();
-            pluginThreads = plugins.Values.Select(plugin =>
-                {
-                    Thread thread = new Thread(plugin.Run);
-                    thread.Name = xmlRpcClient.Name + " " + ControllerPlugin.GetName(plugin.GetType());
-                    thread.IsBackground = true;
-                    thread.Start();
-                    return thread;
-                }).ToList();
+            startPlugins();
         }
 
         /// <summary>
@@ -99,6 +100,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// </summary>
         public void Stop()
         {
+            stopPlugins();
             unloadPlugins();
             xmlRpcClient.EndReceive();
         }
@@ -159,6 +161,27 @@ namespace ManiaNet.DedicatedServer.Controller
             .ToDictionary(plugin => ControllerPlugin.GetIdentifier(plugin.GetType()));
 
             Console.WriteLine("Done");
+        }
+
+        private void startPlugins()
+        {
+            pluginThreads = plugins.Values.Select(plugin =>
+                {
+                    Thread thread = new Thread(plugin.Run);
+                    thread.Name = xmlRpcClient.Name + " " + ControllerPlugin.GetName(plugin.GetType());
+                    thread.IsBackground = true;
+                    thread.Start();
+                    return thread;
+                }).ToList();
+        }
+
+        private void stopPlugins()
+        {
+            foreach (var pluginThread in pluginThreads)
+                pluginThread.Abort();
+
+            // Allow 100ms for plugins to finish the Run method.
+            Thread.Sleep(100);
         }
 
         private void unloadPlugins()
