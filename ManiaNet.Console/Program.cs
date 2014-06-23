@@ -1,5 +1,6 @@
 ﻿using ManiaNet.DedicatedServer;
 using ManiaNet.DedicatedServer.Controller;
+using ManiaNet.DedicatedServer.XmlRpc;
 using ManiaNet.DedicatedServer.XmlRpc.MethodCalls;
 using System;
 using System.Collections.Generic;
@@ -24,8 +25,6 @@ namespace ManiaNet.ConsoleTesting
             xmlRpcConnection.SendRequest(new EnableCallbacks(true).ToString());
             xmlRpcConnection.SendRequest(new SetApiVersion(ApiVersions.Api2013).ToString());
             xmlRpcConnection.SendRequest(new ChatSendServerMessage("Teeest").ToString());
-            string request = XmlRpcConstants.MethodCallAndNameOpening + "GetTimeAttackSyncdhStartPeriod" + XmlRpcConstants.MethodNameClosingAndParamsOpening /* + XmlRpcConstants.ParamOpening + "<value><string>Description</string></value>" + XmlRpcConstants.ParamClosing + XmlRpcConstants.ParamOpening + "<value><string>banane9</string></value>" + XmlRpcConstants.ParamClosing */ + XmlRpcConstants.ParamsAndMethodCallClosing;
-            xmlRpcConnection.SendRequest(request);
 
             //Console.WriteLine("Setting API Version");
             //Console.WriteLine("Handle: " + xmlRpcConnection.Send(setApiVersionRequest));

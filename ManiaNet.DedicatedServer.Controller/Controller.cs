@@ -11,6 +11,7 @@ using System.Xml.Linq;
 using XmlRpc;
 using XmlRpc.MethodCalls;
 using XmlRpc.Types;
+using XmlRpc;
 
 namespace ManiaNet.DedicatedServer.Controller
 {
@@ -60,7 +61,7 @@ namespace ManiaNet.DedicatedServer.Controller
 
             try
             {
-                methodCall.ParseXml(XDocument.Parse(response, LoadOptions.None).Root);
+                if (!methodCall.ParseXml(XDocument.Parse(response, LoadOptions.None).Root);
             }
             catch { return false; }
 
