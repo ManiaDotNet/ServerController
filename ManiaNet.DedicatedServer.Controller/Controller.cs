@@ -16,6 +16,12 @@ namespace ManiaNet.DedicatedServer.Controller
 {
     public class ServerController : IDisposable
     {
+        /// <summary>
+        /// A uint with a 1 at the highest bit.
+        /// If the request handle is 0 after performing a bitwise AND ond this then it's a server callback.
+        /// </summary>
+        private const uint ServerCallbackHandle = 0x80000000;
+
         private ConcurrentDictionary<uint, string> methodResponses = new ConcurrentDictionary<uint, string>();
         private Dictionary<string, ControllerPlugin> plugins = new Dictionary<string, ControllerPlugin>();
         private List<Thread> pluginThreads;
