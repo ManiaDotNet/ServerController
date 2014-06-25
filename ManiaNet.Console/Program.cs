@@ -1,12 +1,11 @@
 ﻿using ManiaNet.DedicatedServer;
 using ManiaNet.DedicatedServer.Controller;
 using ManiaNet.DedicatedServer.XmlRpc;
-using ManiaNet.DedicatedServer.XmlRpc.MethodCalls;
+using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using XmlRpc;
 
 namespace ManiaNet.ConsoleTesting
 {

@@ -1,5 +1,5 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Plugins;
-using ManiaNet.DedicatedServer.XmlRpc.MethodCalls;
+using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using SharpPlugins;
 using System;
 using System.Collections.Concurrent;
@@ -9,13 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using XmlRpc;
-using XmlRpc.MethodCalls;
+using XmlRpc.Methods;
 using XmlRpc.Types;
-using XmlRpc;
 
 namespace ManiaNet.DedicatedServer.Controller
 {
-    public class ServerController : IDisposable
+    public class ServerController
     {
         /// <summary>
         /// A uint with a 1 at the highest bit.
@@ -47,9 +46,9 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <param name="methodCall">The method call to be executed.</param>
         /// <param name="timeout">The maximum time in milliseconds to wait for a response.</param>
         /// <returns>Whether the call was returned (regardless of whether successful or not).</returns>
-        public bool CallMethod<TReturn, TReturnBase>(MethodCall<TReturn, TReturnBase> methodCall, int timeout) where TReturn : XmlRpcType<TReturnBase>, new()
+        public bool CallMethod<TReturn, TReturnBase>(XmlRpcMethodCall<TReturn, TReturnBase> methodCall, int timeout) where TReturn : XmlRpcType<TReturnBase>, new()
         {
-            uint methodHandle = xmlRpcClient.SendRequest(methodCall.GenerateXml().ToString());
+            uint methodHandle = xmlRpcClient.SendRequest(methodCall.GenerateCallXml().ToString());
 
             if (!methodResponses.TryAdd(methodHandle, null))
                 return false;
@@ -61,16 +60,12 @@ namespace ManiaNet.DedicatedServer.Controller
 
             try
             {
-                if (!methodCall.ParseXml(XDocument.Parse(response, LoadOptions.None).Root);
+                if (!methodCall.ParseResponseXml(XDocument.Parse(response, LoadOptions.None).Root))
+                    return false;
             }
             catch { return false; }
 
-            return methodCall.IsCompleted;
-        }
-
-        public void Dispose()
-        {
-            xmlRpcClient.Dispose();
+            return true;
         }
 
         /// <summary>
@@ -119,7 +114,7 @@ namespace ManiaNet.DedicatedServer.Controller
             if (!CallMethod(methodCall, 2000))
                 return false;
 
-            return !methodCall.IsCompleted ? false : methodCall.HadFault ? false : methodCall.ReturnValue;
+            return methodCall.HadFault ? false : methodCall.ReturnValue;
         }
 
         /// <summary>
