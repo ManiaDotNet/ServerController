@@ -16,12 +16,6 @@ namespace ManiaNet.DedicatedServer.Controller
 {
     public class ServerController
     {
-        /// <summary>
-        /// A uint with a 1 at the highest bit.
-        /// If the request handle is 0 after performing a bitwise AND ond this then it's a server callback.
-        /// </summary>
-        private const uint ServerCallbackHandle = 0x80000000;
-
         private ConcurrentDictionary<uint, string> methodResponses = new ConcurrentDictionary<uint, string>();
         private Dictionary<string, ControllerPlugin> plugins = new Dictionary<string, ControllerPlugin>();
         private List<Thread> pluginThreads;
@@ -217,6 +211,124 @@ namespace ManiaNet.DedicatedServer.Controller
                     }
                 });
         }
+
+        #region Callback Events
+
+        /// <summary>
+        /// Delegate for the various server callback events.
+        /// </summary>
+        /// <typeparam name="TMethodCall">The type representing the called method.</typeparam>
+        /// <param name="sender">The ServerController that fired the event.</param>
+        /// <param name="methodCall">The method call information.</param>
+        public delegate void ServerCallbackEventHandler<TMethodCall>(ServerController sender, TMethodCall methodCall)
+            where TMethodCall : XmlRpcMethodCall<XmlRpcBoolean, bool>;
+
+        /// <summary>
+        /// Fires when a map begins.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetBeginMap> BeginMap;
+
+        /// <summary>
+        /// Fires when a match begins.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetBeginMatch> BeginMatch;
+
+        /// <summary>
+        /// Fires when a bill is updated.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetBillUpdated> BillUpdated;
+
+        /// <summary>
+        /// Fires when the <see cref="ManiaNet.DedicatedServer.XmlRpc.Methods.Echo"/> method is called.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetEcho> Echo;
+
+        /// <summary>
+        /// Fires when a map ended.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetEndMap> EndMap;
+
+        /// <summary>
+        /// Fires when a match ended.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetEndMatch> EndMatch;
+
+        /// <summary>
+        /// Fires when the map playlist is modified.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetMapListModified> MapListModified;
+
+        /// <summary>
+        /// Fires when a player changes allies.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetPlayerAlliesChanged> PlayerAlliesChanged;
+
+        /// <summary>
+        /// Fires when a client sent a chat message.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetPlayerChat> PlayerChat;
+
+        /// <summary>
+        /// Fires when a player drives through a checkpoint.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetPlayerCheckpoint> PlayerCheckpoint;
+
+        /// <summary>
+        /// Fires when a client connected to the server.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetPlayerConnect> PlayerConnect;
+
+        /// <summary>
+        /// Fires when a client disconnected from the server.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetPlayerDisconnect> PlayerDisconnect;
+
+        /// <summary>
+        /// Fires when a player finishes the map.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetPlayerFinish> PlayerFinish;
+
+        /// <summary>
+        /// Fires when a player sends incoherent data.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetPlayerIncoherence> PlayerIncoherence;
+
+        /// <summary>
+        /// Fires when a client's info changed.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetPlayerInfoChanged> PlayerInfoChanged;
+
+        /// <summary>
+        /// Fires when a client answered a mnailink page.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetPlayerManialinkPageAnswer> PlayerManialinkPageAnswer;
+
+        /// <summary>
+        /// Fires when the server is started.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetServerStart> ServerStart;
+
+        /// <summary>
+        /// Fires when the server is stopped.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetServerStop> ServerStop;
+
+        /// <summary>
+        /// Fires when the server's status changed.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetStatusChanged> StatusChanged;
+
+        /// <summary>
+        /// Fires when the server receives tunneled data.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetTunnelDataReceived> TunnelDataReceived;
+
+        /// <summary>
+        /// Fires when the current vote's state changes.
+        /// </summary>
+        public event ServerCallbackEventHandler<ManiaPlanetVoteUpdated> VoteUpdated;
+
+        #endregion Callback Events
 
         /// <summary>
         /// Represents a configuration for the server controller.
