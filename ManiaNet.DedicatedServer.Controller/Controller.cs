@@ -205,9 +205,49 @@ namespace ManiaNet.DedicatedServer.Controller
                 {
                     XElement methodCall = XDocument.Parse(serverCallback, LoadOptions.None).Root;
                     string methodName = methodCall.Element(XName.Get("methodName")).Value;
+
+                    //Swith to the right method name and call the event.
                     switch (methodName)
                     {
-                        //Swith to the right method name and call the event.
+                        case "ManiaPlanet.PlayerConnect":
+                            if (PlayerConnect != null)
+                            {
+                                var playerConnectCall = new ManiaPlanetPlayerConnect();
+                                if (playerConnectCall.ParseCallXml(methodCall))
+                                    PlayerConnect(this, playerConnectCall);
+                            }
+                            break;
+
+                        case "ManiaPlanet.PlayerDisconnect":
+                            if (PlayerDisconnect != null)
+                            {
+                                var playerDisconnectCall = new ManiaPlanetPlayerDisconnect();
+                                if (playerDisconnectCall.ParseCallXml(methodCall))
+                                    PlayerDisconnect(this, playerDisconnectCall);
+                            }
+                            break;
+
+                        // Others
+
+                        case "ManiaPlanet.BeginMap":
+                            if (BeginMap != null)
+                            {
+                                var beginMapCall = new ManiaPlanetBeginMap();
+                                if (beginMapCall.ParseCallXml(methodCall))
+                                    BeginMap(this, beginMapCall);
+                            }
+                            break;
+
+                        // Others
+
+                        case "ManiaPlanet.PlayerCheckpoint":
+                            if (PlayerCheckpoint != null)
+                            {
+                                var playerCheckpointCall = new ManiaPlanetPlayerCheckpoint();
+                                if (playerCheckpointCall.ParseCallXml(methodCall))
+                                    PlayerCheckpoint(this, playerCheckpointCall);
+                            }
+                            break;
                     }
                 });
         }
