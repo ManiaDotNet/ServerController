@@ -139,6 +139,206 @@ namespace ManiaNet.DedicatedServer.Controller
             return string.Empty;
         }
 
+        private void callEvent(object serverCallback)
+        {
+            XElement methodCall = XDocument.Parse((string)serverCallback, LoadOptions.None).Root;
+            string methodName = methodCall.Element(XName.Get("methodName")).Value;
+
+            //Swith to the right method name and call the event.
+            switch (methodName)
+            {
+                case "ManiaPlanet.PlayerConnect":
+                    if (PlayerConnect != null)
+                    {
+                        var playerConnectCall = new ManiaPlanetPlayerConnect();
+                        if (playerConnectCall.ParseCallXml(methodCall))
+                            PlayerConnect(this, playerConnectCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.PlayerDisconnect":
+                    if (PlayerDisconnect != null)
+                    {
+                        var playerDisconnectCall = new ManiaPlanetPlayerDisconnect();
+                        if (playerDisconnectCall.ParseCallXml(methodCall))
+                            PlayerDisconnect(this, playerDisconnectCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.PlayerChat":
+                    if (PlayerChat != null)
+                    {
+                        var playerChatCall = new ManiaPlanetPlayerChat();
+                        if (playerChatCall.ParseCallXml(methodCall))
+                            PlayerChat(this, playerChatCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.PlayerManialinkPageAnswer":
+                    if (PlayerManialinkPageAnswer != null)
+                    {
+                        var playerManialinkPageAnswerCall = new ManiaPlanetPlayerManialinkPageAnswer();
+                        if (playerManialinkPageAnswerCall.ParseCallXml(methodCall))
+                            PlayerManialinkPageAnswer(this, playerManialinkPageAnswerCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.Echo":
+                    if (Echo != null)
+                    {
+                        var echoCall = new ManiaPlanetEcho();
+                        if (echoCall.ParseCallXml(methodCall))
+                            Echo(this, echoCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.ServerStart":
+                    if (ServerStart != null)
+                    {
+                        var serverStartCall = new ManiaPlanetServerStart();
+                        if (serverStartCall.ParseCallXml(methodCall))
+                            ServerStart(this, serverStartCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.ServerStop":
+                    if (ServerStop != null)
+                    {
+                        var serverStopCall = new ManiaPlanetServerStop();
+                        if (serverStopCall.ParseCallXml(methodCall))
+                            ServerStop(this, serverStopCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.BeginMatch":
+                    if (BeginMatch != null)
+                    {
+                        var beginMatchCall = new ManiaPlanetBeginMatch();
+                        if (beginMatchCall.ParseCallXml(methodCall))
+                            BeginMatch(this, beginMatchCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.EndMatch":
+                    if (EndMatch != null)
+                    {
+                        var endMatchCall = new ManiaPlanetEndMatch();
+                        if (endMatchCall.ParseCallXml(methodCall))
+                            EndMatch(this, endMatchCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.BeginMap":
+                    if (BeginMap != null)
+                    {
+                        var beginMapCall = new ManiaPlanetBeginMap();
+                        if (beginMapCall.ParseCallXml(methodCall))
+                            BeginMap(this, beginMapCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.EndMap":
+                    if (EndMap != null)
+                    {
+                        var endMapCall = new ManiaPlanetEndMap();
+                        if (endMapCall.ParseCallXml(methodCall))
+                            EndMap(this, endMapCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.StatusChanged":
+                    if (StatusChanged != null)
+                    {
+                        var statusChangedCall = new ManiaPlanetStatusChanged();
+                        if (statusChangedCall.ParseCallXml(methodCall))
+                            StatusChanged(this, statusChangedCall);
+                    }
+                    break;
+
+                case "TrackMania.PlayerCheckpoint":
+                    Console.WriteLine("Player drove through checkpoint.");
+                    if (PlayerCheckpoint != null)
+                    {
+                        var playerCheckpointCall = new TrackManiaPlayerCheckpoint();
+                        if (playerCheckpointCall.ParseCallXml(methodCall))
+                            PlayerCheckpoint(this, playerCheckpointCall);
+                    }
+                    break;
+
+                case "TrackMania.PlayerFinish":
+                    if (PlayerFinish != null)
+                    {
+                        var playerFinishCall = new TrackManiaPlayerFinish();
+                        if (playerFinishCall.ParseCallXml(methodCall))
+                            PlayerFinish(this, playerFinishCall);
+                    }
+                    break;
+
+                case "TrackMania.PlayerIncoherence":
+                    if (PlayerIncoherence != null)
+                    {
+                        var playerIncoherenceCall = new TrackManiaPlayerIncoherence();
+                        if (playerIncoherenceCall.ParseCallXml(methodCall))
+                            PlayerIncoherence(this, playerIncoherenceCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.BillUpdated":
+                    if (BillUpdated != null)
+                    {
+                        var billUpdatedCall = new ManiaPlanetBillUpdated();
+                        if (billUpdatedCall.ParseCallXml(methodCall))
+                            BillUpdated(this, billUpdatedCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.TunnelDataReceived":
+                    if (TunnelDataReceived != null)
+                    {
+                        var tunnelDataReceivedCall = new ManiaPlanetTunnelDataReceived();
+                        if (tunnelDataReceivedCall.ParseCallXml(methodCall))
+                            TunnelDataReceived(this, tunnelDataReceivedCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.MapListModified":
+                    if (MapListModified != null)
+                    {
+                        var mapListModifiedCall = new ManiaPlanetMapListModified();
+                        if (mapListModifiedCall.ParseCallXml(methodCall))
+                            MapListModified(this, mapListModifiedCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.PlayerInfoChanged":
+                    if (PlayerInfoChanged != null)
+                    {
+                        var playerInfoChangedCall = new ManiaPlanetPlayerInfoChanged();
+                        if (playerInfoChangedCall.ParseCallXml(methodCall))
+                            PlayerInfoChanged(this, playerInfoChangedCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.VoteUpdated":
+                    if (VoteUpdated != null)
+                    {
+                        var voteUpdatedCall = new ManiaPlanetVoteUpdated();
+                        if (voteUpdatedCall.ParseCallXml(methodCall))
+                            VoteUpdated(this, voteUpdatedCall);
+                    }
+                    break;
+
+                case "ManiaPlanet.PlayerAlliesChanged":
+                    if (PlayerAlliesChanged != null)
+                    {
+                        var playerAlliesChangedCall = new ManiaPlanetPlayerAlliesChanged();
+                        if (playerAlliesChangedCall.ParseCallXml(methodCall))
+                            PlayerAlliesChanged(this, playerAlliesChangedCall);
+                    }
+                    break;
+            }
+        }
+
         private void loadPlugins()
         {
             Console.WriteLine("Loading Plugins...");
@@ -201,55 +401,7 @@ namespace ManiaNet.DedicatedServer.Controller
 
         private void xmlRpcClient_ServerCallback(IXmlRpcClient sender, string serverCallback)
         {
-            Task.Factory.StartNew(() =>
-                {
-                    XElement methodCall = XDocument.Parse(serverCallback, LoadOptions.None).Root;
-                    string methodName = methodCall.Element(XName.Get("methodName")).Value;
-
-                    //Swith to the right method name and call the event.
-                    switch (methodName)
-                    {
-                        case "ManiaPlanet.PlayerConnect":
-                            if (PlayerConnect != null)
-                            {
-                                var playerConnectCall = new ManiaPlanetPlayerConnect();
-                                if (playerConnectCall.ParseCallXml(methodCall))
-                                    PlayerConnect(this, playerConnectCall);
-                            }
-                            break;
-
-                        case "ManiaPlanet.PlayerDisconnect":
-                            if (PlayerDisconnect != null)
-                            {
-                                var playerDisconnectCall = new ManiaPlanetPlayerDisconnect();
-                                if (playerDisconnectCall.ParseCallXml(methodCall))
-                                    PlayerDisconnect(this, playerDisconnectCall);
-                            }
-                            break;
-
-                        // Others
-
-                        case "ManiaPlanet.BeginMap":
-                            if (BeginMap != null)
-                            {
-                                var beginMapCall = new ManiaPlanetBeginMap();
-                                if (beginMapCall.ParseCallXml(methodCall))
-                                    BeginMap(this, beginMapCall);
-                            }
-                            break;
-
-                        // Others
-
-                        case "ManiaPlanet.PlayerCheckpoint":
-                            if (PlayerCheckpoint != null)
-                            {
-                                var playerCheckpointCall = new ManiaPlanetPlayerCheckpoint();
-                                if (playerCheckpointCall.ParseCallXml(methodCall))
-                                    PlayerCheckpoint(this, playerCheckpointCall);
-                            }
-                            break;
-                    }
-                });
+            Task.Factory.StartNew(new Action<object>(callEvent), (object)serverCallback);
         }
 
         #region Callback Events
@@ -311,7 +463,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <summary>
         /// Fires when a player drives through a checkpoint.
         /// </summary>
-        public event ServerCallbackEventHandler<ManiaPlanetPlayerCheckpoint> PlayerCheckpoint;
+        public event ServerCallbackEventHandler<TrackManiaPlayerCheckpoint> PlayerCheckpoint;
 
         /// <summary>
         /// Fires when a client connected to the server.
@@ -326,12 +478,12 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <summary>
         /// Fires when a player finishes the map.
         /// </summary>
-        public event ServerCallbackEventHandler<ManiaPlanetPlayerFinish> PlayerFinish;
+        public event ServerCallbackEventHandler<TrackManiaPlayerFinish> PlayerFinish;
 
         /// <summary>
         /// Fires when a player sends incoherent data.
         /// </summary>
-        public event ServerCallbackEventHandler<ManiaPlanetPlayerIncoherence> PlayerIncoherence;
+        public event ServerCallbackEventHandler<TrackManiaPlayerIncoherence> PlayerIncoherence;
 
         /// <summary>
         /// Fires when a client's info changed.
