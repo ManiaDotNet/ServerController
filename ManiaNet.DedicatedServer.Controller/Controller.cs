@@ -415,6 +415,8 @@ namespace ManiaNet.DedicatedServer.Controller
         public delegate void ServerCallbackEventHandler<TMethodCall>(ServerController sender, TMethodCall methodCall)
             where TMethodCall : XmlRpcMethodCall<XmlRpcBoolean, bool>;
 
+        //public delegate void AllServerCallbackEventHandler<>
+
         /// <summary>
         /// Fires when a map begins.
         /// </summary>
@@ -431,7 +433,7 @@ namespace ManiaNet.DedicatedServer.Controller
         public event ServerCallbackEventHandler<ManiaPlanetBillUpdated> BillUpdated;
 
         /// <summary>
-        /// Fires when the <see cref="ManiaNet.DedicatedServer.XmlRpc.Methods.Echo"/> method is called.
+        /// Fires when the <see cref="ManiaNet.DedicatedServer.XmlRpc.Methods.Echo"/> method is called by another controller.
         /// </summary>
         public event ServerCallbackEventHandler<ManiaPlanetEcho> Echo;
 
