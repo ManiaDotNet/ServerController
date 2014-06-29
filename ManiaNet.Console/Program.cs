@@ -23,13 +23,12 @@ namespace ManiaNet.ConsoleTesting
             Thread.Sleep(250);
             xmlRpcConnection.SendRequest(new EnableCallbacks(true).ToString());
             xmlRpcConnection.SendRequest(new SetApiVersion(ApiVersions.Api2013).ToString());
-            xmlRpcConnection.SendRequest(new ChatSendServerMessage("Teeest").ToString());
 
-            //Console.WriteLine("Setting API Version");
-            //Console.WriteLine("Handle: " + xmlRpcConnection.Send(setApiVersionRequest));
+            Action<ManiaPlanetPlayerChat> testAction = playerChatCall => Console.WriteLine(playerChatCall.Text);
+            Console.WriteLine("Trying to register test command: " + (controller.RegisterCommand("test", testAction) ? "Success" : "Failed"));
 
-            //Console.WriteLine("Enabling Callbacks");
-            //Console.WriteLine("Handle: " + xmlRpcConnection.Send(allowCallbacksRequest));
+            Thread.Sleep(30000);
+            Console.WriteLine("Trying to unregister test command: " + (controller.UnregisterCommand("test", testAction) ? "Success" : "Failed"));
 
             Console.ReadLine();
         }

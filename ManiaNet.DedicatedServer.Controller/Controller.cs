@@ -14,14 +14,16 @@ using XmlRpc.Types;
 
 namespace ManiaNet.DedicatedServer.Controller
 {
+    /// <summary>
+    /// Represents the main component of the controller, that handles all the incomming callbacks, command registrations of plugins, etc.
+    /// </summary>
     public class ServerController
     {
         private ConcurrentDictionary<uint, string> methodResponses = new ConcurrentDictionary<uint, string>();
         private Dictionary<string, ControllerPlugin> plugins = new Dictionary<string, ControllerPlugin>();
         private List<Thread> pluginThreads;
+        private ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>> registeredCommands = new ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>>();
         private IXmlRpcClient xmlRpcClient;
-
-        public Config Configuration { get; private set; }
 
         public ServerController(IXmlRpcClient xmlRpcClient, Config config)
         {
@@ -30,6 +32,16 @@ namespace ManiaNet.DedicatedServer.Controller
             this.xmlRpcClient.ServerCallback += xmlRpcClient_ServerCallback;
 
             Configuration = config;
+        }
+
+        public Config Configuration { get; private set; }
+
+        /// <summary>
+        /// Gets the registered commands (all in lower case).
+        /// </summary>
+        public IEnumerable<string> RegisteredCommands
+        {
+            get { return registeredCommands.Keys; }
         }
 
         /// <summary>
@@ -72,6 +84,35 @@ namespace ManiaNet.DedicatedServer.Controller
             return plugins.ContainsKey(identifier);
         }
 
+        /// <summary>
+        /// Finds out whether the given command identifier is already taken.
+        /// </summary>
+        /// <param name="cmdName">The command identifier to check the availability for.</param>
+        /// <returns>Whether it's taken or not.</returns>
+        public bool IsRegisteredCommand(string cmdName)
+        {
+            return registeredCommands.ContainsKey(cmdName.ToLower());
+        }
+
+        /// <summary>
+        /// Trys to register an action for a given command.
+        /// <para/>
+        /// If a message is an registered command, it doesn't activate the PlayerChat event.
+        /// </summary>
+        /// <param name="cmdName">The command identifier. Will be stored in lower case.</param>
+        /// <param name="cmdAction">The action to be performed when the command is received. The parameter is the full message parameters.<para/>
+        /// If you're planning to unregister the command, you have to store the action.</param>
+        /// <returns>Whether it was successfully added or not.</returns>
+        public bool RegisterCommand(string cmdName, Action<ManiaPlanetPlayerChat> cmdAction)
+        {
+            string cmd = cmdName.ToLower();
+
+            if (registeredCommands.ContainsKey(cmd))
+                return false;
+
+            return registeredCommands.TryAdd(cmd, cmdAction);
+        }
+
         public void ReloadPlugins()
         {
             stopPlugins();
@@ -99,6 +140,35 @@ namespace ManiaNet.DedicatedServer.Controller
             stopPlugins();
             unloadPlugins();
             xmlRpcClient.EndReceive();
+        }
+
+        /// <summary>
+        /// Trys to unregister a command, given its identifier and action.
+        /// </summary>
+        /// <param name="cmdName">The command identifier.</param>
+        /// <param name="cmdAction">The that was performed when the command was received. Has to be the same (reference) action as the one registered.</param>
+        /// <returns>Whether there's now no command with the given identifier registered.</returns>
+        public bool UnregisterCommand(string cmdName, Action<ManiaPlanetPlayerChat> cmdAction)
+        {
+            string cmd = cmdName.ToLower();
+
+            if (!registeredCommands.ContainsKey(cmd))
+                return true;
+
+            bool isSameEntry = false;
+            foreach (var registeredCommand in registeredCommands)
+            {
+                if (registeredCommand.Key.Equals(cmd) && registeredCommand.Value.Equals(cmdAction))
+                {
+                    isSameEntry = true;
+                    break;
+                }
+            }
+
+            if (!isSameEntry)
+                return false;
+
+            return registeredCommands.TryRemove(cmd, out cmdAction);
         }
 
         private bool authenticate()
@@ -166,11 +236,24 @@ namespace ManiaNet.DedicatedServer.Controller
                     break;
 
                 case "ManiaPlanet.PlayerChat":
-                    if (PlayerChat != null)
+                    var playerChatCall = new ManiaPlanetPlayerChat();
+                    if (playerChatCall.ParseCallXml(methodCall))
                     {
-                        var playerChatCall = new ManiaPlanetPlayerChat();
-                        if (playerChatCall.ParseCallXml(methodCall))
+                        bool registeredCommand = false;
+                        foreach (var cmdName in registeredCommands.Keys)
+                        {
+                            if (playerChatCall.Text.ToLower().StartsWith("/" + cmdName))
+                            {
+                                registeredCommands[cmdName](playerChatCall);
+                                registeredCommand = true;
+                                break;
+                            }
+                        }
+
+                        if (!registeredCommand && PlayerChat != null)
+                        {
                             PlayerChat(this, playerChatCall);
+                        }
                     }
                     break;
 
@@ -459,6 +542,8 @@ namespace ManiaNet.DedicatedServer.Controller
 
         /// <summary>
         /// Fires when a client sent a chat message.
+        /// <para/>
+        /// Doesn't get fired when the message is a registered command.
         /// </summary>
         public event ServerCallbackEventHandler<ManiaPlanetPlayerChat> PlayerChat;
 
@@ -530,6 +615,19 @@ namespace ManiaNet.DedicatedServer.Controller
         public class Config
         {
             /// <summary>
+            /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.ServerController.Config"/> class with the given Login and Password.
+            /// </summary>
+            /// <param name="login">The Login that the controller authenticates with; SuperAdmin by default.</param>
+            /// <param name="password">The Password that the controller authenticates with; SuperAdmin by default.</param>
+            /// <param name="pluginFolders">The path(s) to the folders used to load plugins from; { "plugins" } by default.</param>
+            public Config(string login = "SuperAdmin", string password = "SuperAdmin", IEnumerable<string> pluginFolders = null)
+            {
+                Login = login;
+                Password = password;
+                PluginFolders = pluginFolders ?? new string[] { "plugins" };
+            }
+
+            /// <summary>
             /// Gets the Login that the controller will use to authenticate with the xml rpc server.
             /// </summary>
             public string Login { get; private set; }
@@ -543,19 +641,6 @@ namespace ManiaNet.DedicatedServer.Controller
             /// Gets the path(s) to the folders used to load plugins from.
             /// </summary>
             public IEnumerable<string> PluginFolders { get; private set; }
-
-            /// <summary>
-            /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.ServerController.Config"/> class with the given Login and Password.
-            /// </summary>
-            /// <param name="login">The Login that the controller authenticates with; SuperAdmin by default.</param>
-            /// <param name="password">The Password that the controller authenticates with; SuperAdmin by default.</param>
-            /// <param name="pluginFolders">The path(s) to the folders used to load plugins from; { "plugins" } by default.</param>
-            public Config(string login = "SuperAdmin", string password = "SuperAdmin", IEnumerable<string> pluginFolders = null)
-            {
-                Login = login;
-                Password = password;
-                PluginFolders = pluginFolders ?? new string[] { "plugins" };
-            }
         }
     }
 }
