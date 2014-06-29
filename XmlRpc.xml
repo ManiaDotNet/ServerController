@@ -1,0 +1,842 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>XmlRpc</name>
+    </assembly>
+    <members>
+        <member name="T:XmlRpc.ConnectionDroppedUnexpectedlyEventHandler">
+            <summary>
+            EventHandler for the ConnectionDroppedUnexpectedly event.
+            </summary>
+            <param name="sender">The xml rpc client of which the connection dropped.</param>
+        </member>
+        <member name="T:XmlRpc.MethodResponseEventHandler">
+            <summary>
+            EventHandler for the MethodResponse event.
+            </summary>
+            <param name="sender">The xml rpc client that received the method response.</param>
+            <param name="requestHandle">The handle of the method call that the response is for.</param>
+            <param name="methodResponse">The xml formatted content of the method response.</param>
+        </member>
+        <member name="T:XmlRpc.ServerCallbackEventHandler">
+            <summary>
+            EventHandler for the ServerCallback event.
+            </summary>
+            <param name="sender">The xml rpc client that reveived the server callback.</param>
+            <param name="serverCallback">The xml formatted content of the method response.</param>
+        </member>
+        <member name="T:XmlRpc.IXmlRpcClient">
+            <summary>
+            Interface for XmlRpc Clients.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.IXmlRpcClient.EndReceive">
+            <summary>
+            Stop reading data from the interface connection.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.IXmlRpcClient.SendRequest(System.String)">
+            <summary>
+            Send an Xml formatted request to the XmlRpc interface.
+            </summary>
+            <param name="request">The xml formatted request.</param>
+            <returns>The handle associated with the request.</returns>
+        </member>
+        <member name="M:XmlRpc.IXmlRpcClient.StartReceive">
+            <summary>
+            Start reading data from the interface connection.
+            </summary>
+        </member>
+        <member name="P:XmlRpc.IXmlRpcClient.Name">
+            <summary>
+            Gets client's name.
+            </summary>
+        </member>
+        <member name="E:XmlRpc.IXmlRpcClient.ConnectionDroppedUnexpectedly">
+            <summary>
+            Fires when the connection drops unexpectedly.
+            </summary>
+        </member>
+        <member name="E:XmlRpc.IXmlRpcClient.MethodResponse">
+            <summary>
+            Fires when a MethodResponse is received.
+            </summary>
+        </member>
+        <member name="E:XmlRpc.IXmlRpcClient.ServerCallback">
+            <summary>
+            Fires when a ServerCallback is received.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Methods.SystemListMethods">
+            <summary>
+            Represents a call to the system.listMethods method.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Methods.XmlRpcMethodCall`2">
+            <summary>
+            Abstract base class for method calls that don't have parameters and the base classes for those that do.
+            </summary>
+            <typeparam name="TReturn">The returned XmlRpcType.</typeparam>
+            <typeparam name="TReturnBase">The type of the return value.</typeparam>
+        </member>
+        <member name="F:XmlRpc.Methods.XmlRpcMethodCall`2.returned">
+            <summary>
+            Backing field for the Returned property.
+            </summary>
+        </member>
+        <member name="F:XmlRpc.Methods.XmlRpcMethodCall`2.fault">
+            <summary>
+            Backing field for the Fault property.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`2.GenerateCallXml">
+            <summary>
+            Generates the Xml to send to the server for executing the method call.
+            </summary>
+            <returns>An XElement containing the method call.</returns>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`2.GenerateResponseXml">
+            <summary>
+            Generates an XElement storing the information for the method response.
+            </summary>
+            <returns>The generated XElement.</returns>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`2.ParseCallXml(System.Xml.Linq.XElement)">
+            <summary>
+            Fills the parameters of this method call with the information contained in the XElement.
+            </summary>
+            <param name="xElement">The method call element storing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`2.ParseResponseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Fills the Returned or Fault information from the given method response data.
+            <para/>
+            This makes IsCompleted true and the method call has to be Reset before using this again.
+            </summary>
+            <param name="xElement">The XElement containing the method response.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`2.generateCallParamsXml">
+            <summary>
+            Generates Xml containing the call parameter data.
+            <para/>
+            To be overridden by classes that add more call parameters to add theirs.
+            </summary>
+            <returns>An XElement containing the call parameter data.</returns>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`2.makeParamElement``1(XmlRpc.Types.XmlRpcType{``0})">
+            <summary>
+            Creates a param-Element with the given XmlRpcType's value as content.
+            </summary>
+            <typeparam name="T">The type of the value.</typeparam>
+            <param name="value">The XmlRpcType to be wrapped.</param>
+            <returns>A param-Element containing the value as content.</returns>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`2.parseCallParamsXml(System.Xml.Linq.XElement)">
+            <summary>
+            Fills the properties of this method call with the information contained in the XElement.
+            </summary>
+            <param name="xElement">The params element storing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="P:XmlRpc.Methods.XmlRpcMethodCall`2.Fault">
+            <summary>
+            Gets or sets the fault information. May be the default of <see cref="T:XmlRpc.Types.Structs.FaultStruct"/>.
+            </summary>
+        </member>
+        <member name="P:XmlRpc.Methods.XmlRpcMethodCall`2.HadFault">
+            <summary>
+            Gets whether there was a fault with the method call or not.
+            </summary>
+        </member>
+        <member name="P:XmlRpc.Methods.XmlRpcMethodCall`2.MethodName">
+            <summary>
+            Gets the name of the method this call is for.
+            </summary>
+        </member>
+        <member name="P:XmlRpc.Methods.XmlRpcMethodCall`2.ReturnValue">
+            <summary>
+            Gets or sets the return value of the call. May be the default of TReturnBase.
+            </summary>
+        </member>
+        <member name="P:XmlRpc.Methods.SystemListMethods.MethodName">
+            <summary>
+            Gets the name of the method this call is for.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Methods.SystemMethodHelp">
+            <summary>
+            Represents a call to the system.methodHelp method.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Methods.XmlRpcMethodCall`4">
+            <summary>
+            Abstract base class for method calls that have one parameter and the base classes for those that have more.
+            </summary>
+            <typeparam name="TParam1">The XmlRpcType of the parameter.</typeparam>
+            <typeparam name="TParam1Base">The type of the parameter value.</typeparam>
+            <typeparam name="TReturn">The returned XmlRpcType.</typeparam>
+            <typeparam name="TReturnBase">The type of the return value.</typeparam>
+        </member>
+        <member name="F:XmlRpc.Methods.XmlRpcMethodCall`4.param1">
+            <summary>
+            Field for the first parameter.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`4.generateCallParamsXml">
+            <summary>
+            Generates Xml containing the parameter data.
+            <para/>
+            To be overridden by classes that add more parameters to add theirs.
+            </summary>
+            <returns>An XElement containing the parameter data.</returns>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`4.parseCallParamsXml(System.Xml.Linq.XElement)">
+            <summary>
+            Fills the properties of this method call with the information contained in the XElement.
+            </summary>
+            <param name="xElement">The params element storing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="M:XmlRpc.Methods.SystemMethodHelp.#ctor(System.String)">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Methods.SystemMethodHelp"/> class with the given target method name.
+            </summary>
+            <param name="targetMethod">The name of the method that the help is wanted for.</param>
+        </member>
+        <member name="P:XmlRpc.Methods.SystemMethodHelp.MethodName">
+            <summary>
+            Gets the name of the method this call is for.
+            </summary>
+        </member>
+        <member name="P:XmlRpc.Methods.SystemMethodHelp.TargetMethod">
+            <summary>
+            Gets or sets the name of the method that the help is wanted for.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Methods.SystemMethodSignature">
+            <summary>
+            Represents a call to the system.methodSignature method.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Methods.SystemMethodSignature.#ctor(System.String)">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Methods.SystemMethodSignature"/> class with the given target method name.
+            </summary>
+            <param name="targetMethod">The name of the method that the signatures are wanted for.</param>
+        </member>
+        <member name="P:XmlRpc.Methods.SystemMethodSignature.MethodName">
+            <summary>
+            Gets or sets the login used for authentication.
+            </summary>
+        </member>
+        <member name="P:XmlRpc.Methods.SystemMethodSignature.TargetMethod">
+            <summary>
+            Gets or sets the name of the method that the signatures are wanted for.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Methods.XmlRpcMethodCall`6">
+            <summary>
+            Abstract base class for method calls that have two parameters and the base classes for those that have more.
+            </summary>
+            <typeparam name="TParam1">The XmlRpcType of the first parameter.</typeparam>
+            <typeparam name="TParam1Base">The type of the first parameter value.</typeparam>
+            <typeparam name="TParam2">The XmlRpcType of the second parameter.</typeparam>
+            <typeparam name="TParam2Base">The type of the second parameter value.</typeparam>
+            <typeparam name="TReturn">The returned XmlRpcType.</typeparam>
+            <typeparam name="TReturnBase">The type of the return value.</typeparam>
+        </member>
+        <member name="F:XmlRpc.Methods.XmlRpcMethodCall`6.param2">
+            <summary>
+            Field for the second parameter.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`6.generateCallParamsXml">
+            <summary>
+            Generates Xml containing the parameter data.
+            <para/>
+            To be overridden by classes that add more parameters to add theirs.
+            </summary>
+            <returns>An XElement containing the parameter data.</returns>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`6.parseCallParamsXml(System.Xml.Linq.XElement)">
+            <summary>
+            Fills the properties of this method call with the information contained in the XElement.
+            </summary>
+            <param name="xElement">The params element storing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="T:XmlRpc.Methods.XmlRpcMethodCall`8">
+            <summary>
+            Abstract base class for method calls that have three parameters and the base classes for those that have more.
+            </summary>
+            <typeparam name="TParam1">The XmlRpcType of the first parameter.</typeparam>
+            <typeparam name="TParam1Base">The type of the first parameter value.</typeparam>
+            <typeparam name="TParam2">The XmlRpcType of the second parameter.</typeparam>
+            <typeparam name="TParam2Base">The type of the second parameter value.</typeparam>
+            <typeparam name="TParam3">The XmlRpcType of the third parameter.</typeparam>
+            <typeparam name="TParam3Base">The type of the third parameter value.</typeparam>
+            <typeparam name="TReturn">The returned XmlRpcType.</typeparam>
+            <typeparam name="TReturnBase">The type of the return value.</typeparam>
+        </member>
+        <member name="F:XmlRpc.Methods.XmlRpcMethodCall`8.param3">
+            <summary>
+            Field for the third parameter.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`8.generateCallParamsXml">
+            <summary>
+            Generates Xml containing the parameter data.
+            <para/>
+            To be overridden by classes that add more parameters to add theirs.
+            </summary>
+            <returns>An XElement containing the parameter data.</returns>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`8.parseCallParamsXml(System.Xml.Linq.XElement)">
+            <summary>
+            Fills the properties of this method call with the information contained in the XElement.
+            </summary>
+            <param name="xElement">The params element storing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="T:XmlRpc.Methods.XmlRpcMethodCall`10">
+            <summary>
+            Abstract base class for method calls that have fourth parameters and the base classes for those that have more.
+            </summary>
+            <typeparam name="TParam1">The XmlRpcType of the first parameter.</typeparam>
+            <typeparam name="TParam1Base">The type of the first parameter value.</typeparam>
+            <typeparam name="TParam2">The XmlRpcType of the second parameter.</typeparam>
+            <typeparam name="TParam2Base">The type of the second parameter value.</typeparam>
+            <typeparam name="TParam3">The XmlRpcType of the third parameter.</typeparam>
+            <typeparam name="TParam3Base">The type of the third parameter value.</typeparam>
+            <typeparam name="TParam4">The XmlRpcType of the fourth parameter.</typeparam>
+            <typeparam name="TParam4Base">The type of the fourth parameter value.</typeparam>
+            <typeparam name="TReturn">The returned XmlRpcType.</typeparam>
+            <typeparam name="TReturnBase">The type of the return value.</typeparam>
+        </member>
+        <member name="F:XmlRpc.Methods.XmlRpcMethodCall`10.param4">
+            <summary>
+            Field for the fourth parameter.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`10.generateCallParamsXml">
+            <summary>
+            Generates Xml containing the parameter data.
+            <para/>
+            To be overridden by classes that add more parameters to add theirs.
+            </summary>
+            <returns>An XElement containing the parameter data.</returns>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`10.parseCallParamsXml(System.Xml.Linq.XElement)">
+            <summary>
+            Fills the properties of this method call with the information contained in the XElement.
+            </summary>
+            <param name="xElement">The params element storing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="T:XmlRpc.Methods.XmlRpcMethodCall`12">
+            <summary>
+            Abstract base class for method calls that have fourth parameters and the base classes for those that have more.
+            </summary>
+            <typeparam name="TParam1">The XmlRpcType of the first parameter.</typeparam>
+            <typeparam name="TParam1Base">The type of the first parameter value.</typeparam>
+            <typeparam name="TParam2">The XmlRpcType of the second parameter.</typeparam>
+            <typeparam name="TParam2Base">The type of the second parameter value.</typeparam>
+            <typeparam name="TParam3">The XmlRpcType of the third parameter.</typeparam>
+            <typeparam name="TParam3Base">The type of the third parameter value.</typeparam>
+            <typeparam name="TParam4">The XmlRpcType of the fourth parameter.</typeparam>
+            <typeparam name="TParam4Base">The type of the fourth parameter value.</typeparam>
+            <typeparam name="TParam5">The XmlRpcType of the fifth parameter.</typeparam>
+            <typeparam name="TParam5Base">The type of the fifth parameter value.</typeparam>
+            <typeparam name="TReturn">The returned XmlRpcType.</typeparam>
+            <typeparam name="TReturnBase">The type of the return value.</typeparam>
+        </member>
+        <member name="F:XmlRpc.Methods.XmlRpcMethodCall`12.param5">
+            <summary>
+            Field for the fourth parameter.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`12.generateCallParamsXml">
+            <summary>
+            Generates Xml containing the parameter data.
+            <para/>
+            To be overridden by classes that add more parameters to add theirs.
+            </summary>
+            <returns>An XElement containing the parameter data.</returns>
+        </member>
+        <member name="M:XmlRpc.Methods.XmlRpcMethodCall`12.parseCallParamsXml(System.Xml.Linq.XElement)">
+            <summary>
+            Fills the properties of this method call with the information contained in the XElement.
+            </summary>
+            <param name="xElement">The params element storing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="T:XmlRpc.Types.Structs.BaseStruct">
+            <summary>
+            Abstract base class for all xml rpc structs.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.Structs.BaseStruct.GenerateXml">
+            <summary>
+            Generates an XElement storing the information in this struct.
+            </summary>
+            <returns>The generated XElement.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.Structs.BaseStruct.ParseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Fills the properties of this struct with the information contained in the XElement.
+            </summary>
+            <param name="xElement">The struct element storing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.Structs.BaseStruct.getMemberName(System.Xml.Linq.XElement)">
+            <summary>
+            Gets the name of the member from a member element.
+            </summary>
+            <param name="member">The member element to get the name from.</param>
+            <returns>The name of the member.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.Structs.BaseStruct.getMemberValueElement(System.Xml.Linq.XElement)">
+            <summary>
+            Gets the value element of a member from a member element.
+            </summary>
+            <param name="member">The member element to get the value from.</param>
+            <returns>The value element of the member or null if not a valid member.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.Structs.BaseStruct.isStructElement(System.Xml.Linq.XElement)">
+            <summary>
+            Checks whether the given XElement has the local name corresponding to a struct element.
+            </summary>
+            <param name="xElement">The element to check.</param>
+            <returns>Whether it has the correct local name.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.Structs.BaseStruct.isValidMemberElement(System.Xml.Linq.XElement)">
+            <summary>
+            Checks if an element is a valid member element.
+            </summary>
+            <param name="member">The element to check.</param>
+        </member>
+        <member name="M:XmlRpc.Types.Structs.BaseStruct.makeMemberElement``1(System.String,XmlRpc.Types.XmlRpcType{``0})">
+            <summary>
+            Creates a member element from the name and the value content element.
+            </summary>
+            <param name="name">The name of the member.</param>
+            <param name="value">The value XmlRpcType.</param>
+            <typeparam name="T">The XmlRpType's base type.</typeparam>
+            <returns>The member element with the given name and value content.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.Structs.BaseStruct.parseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Fills the property of this struct that has the correct name with the information contained in the member-XElement.
+            </summary>
+            <param name="xElement">The member element storing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.Structs.BaseStruct.makeNameXElement(System.String)">
+            <summary>
+            Creates a name element with the given content.
+            </summary>
+            <param name="name">The value of the name element.</param>
+            <returns>The name element with the given value.</returns>
+        </member>
+        <member name="T:XmlRpc.Types.Structs.FaultStruct">
+            <summary>
+            Gets the struct returned when a method call has a fault.
+            </summary>
+        </member>
+        <member name="F:XmlRpc.Types.Structs.FaultStruct.faultCode">
+            <summary>
+            Backing field for the FaultCode property.
+            </summary>
+        </member>
+        <member name="F:XmlRpc.Types.Structs.FaultStruct.faultString">
+            <summary>
+            Backing field for the FaultString property.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.Structs.FaultStruct.GenerateXml">
+            <summary>
+            Generates an XElement storing the information in this struct.
+            </summary>
+            <returns>The generated XElement.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.Structs.FaultStruct.parseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Fills the property of this struct that has the correct name with the information contained in the member-XElement.
+            </summary>
+            <param name="member">The member element storing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="P:XmlRpc.Types.Structs.FaultStruct.FaultCode">
+            <summary>
+            Gets the fault code.
+            </summary>
+        </member>
+        <member name="P:XmlRpc.Types.Structs.FaultStruct.FaultString">
+            <summary>
+            Gets the description of the fault.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Types.XmlRpcArray`2">
+            <summary>
+            Represents an XmlRpcType containing an array of XmlRpcTypes that derive from TBase.
+            For example for a string array, TArray would be XmlRpcString and TBase would be string.
+            TBase enforces TArray. TArray has to be XmlRpcString because it derives from XmlRpcType&lt;string&gt;
+            </summary>
+            <typeparam name="TArray">TArray[] is the Type of the Value property.</typeparam>
+            <typeparam name="TArrayBase">TBase is the base type that TArray has to derive from.</typeparam>
+        </member>
+        <member name="T:XmlRpc.Types.XmlRpcType`1">
+            <summary>
+            Abstract base class for all XmlRpcTypes.
+            </summary>
+            <typeparam name="TValue">The Type of the Value property.</typeparam>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcType`1.#ctor">
+            <summary>
+            Creates a new instance of the <see cref="!:ManiaNet.XmlRpc.Types.XmlRpcType"/> class with Value set to the default value for TValue.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcType`1.#ctor(`0)">
+            <summary>
+            Creates a new instance of the <see cref="!:ManiaNet.XmlRpc.Types.XmlRpcType"/> class with the given value.
+            </summary>
+            <param name="value">The value.</param>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcType`1.GenerateXml">
+            <summary>
+            Generates a value-XElement containing the information stored in this XmlRpc type.
+            <para/>
+            Default implementation creates an XElement with the ContentElementName and the content from Value, and wraps it in a value element.
+            </summary>
+            <returns>The generated Xml.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcType`1.ParseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Sets the Value property with the information contained in the value-XElement.
+            </summary>
+            <param name="xElement">The element containing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcType`1.hasValueCorrectContent(System.Xml.Linq.XElement)">
+            <summary>
+            Checks whether the value-XElement has content fitting with this XmlRpc type.
+            <para/>
+            Can be overridden if a single child element with the correct name is not the desired check.
+            Validity of the XElement will have already been verified.
+            </summary>
+            <param name="xElement">The element to check.</param>
+            <returns>Whether it has fitting content or not.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcType`1.isValueElement(System.Xml.Linq.XElement)">
+            <summary>
+            Checks whether the given XElement has the local name corresponding to a value element.
+            </summary>
+            <param name="xElement">The element to check.</param>
+            <returns>Whether it has the correct local name.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcType`1.parseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Sets the Value property with the information contained in the value-XElement.
+            <para/>
+            Gets called by the ParseXml method to do the actual parsing. Validity of the XElement will have already been verified.
+            </summary>
+            <param name="xElement">The element containing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="P:XmlRpc.Types.XmlRpcType`1.ContentElementName">
+            <summary>
+            The name of value content elements for this XmlRpc type.
+            </summary>
+        </member>
+        <member name="P:XmlRpc.Types.XmlRpcType`1.Value">
+            <summary>
+            Gets or sets the Value contained by this XmlRpcType.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcArray`2.#ctor(`0[])">
+            <summary>
+            Creates a new instance of the <see cref="!:XmlRpc.Types.XmlRpcArray"/> class with the given value.
+            </summary>
+            <param name="value">The array encapsulated by this.</param>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcArray`2.#ctor">
+            <summary>
+            Creates a new instance of the <see cref="!:XmlRpc.Types.XmlRpcArray"/> class with a zero-length TArray array for the Value property.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcArray`2.GenerateXml">
+            <summary>
+            Generates an XElement from the Value. Default implementation creates an XElement with the ElementName and the content from Value.
+            </summary>
+            <returns>The generated Xml.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcArray`2.parseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Sets the Value property with the information contained in the value-XElement.
+            </summary>
+            <param name="xElement">The element containing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="P:XmlRpc.Types.XmlRpcArray`2.ContentElementName">
+            <summary>
+            The name of Elements of this type.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Types.XmlRpcBase64">
+            <summary>
+            Represents an XmlRpcType containing a byte array that is formatted as base64 string.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcBase64.#ctor">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcBase64"/> class with a zero-length byte array for the Value property.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcBase64.#ctor(System.Byte[])">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcBase64"/> class with the given value.
+            </summary>
+            <param name="value">The data encapsulated by this.</param>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcBase64.GenerateXml">
+            <summary>
+            Generates an XElement from the Value. Default implementation creates an XElement with the ElementName and the content from Value.
+            </summary>
+            <returns>The generated Xml.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcBase64.parseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Sets the Value property with the information contained in the value-XElement.
+            </summary>
+            <param name="xElement">The element containing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="P:XmlRpc.Types.XmlRpcBase64.ContentElementName">
+            <summary>
+            The name of value content elements for this XmlRpc type.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Types.XmlRpcBoolean">
+            <summary>
+            Represents an XmlRpcType containing a boolean.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcBoolean.#ctor">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcBoolean"/> class with Value set to the default value for bool.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcBoolean.#ctor(System.Boolean)">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcBoolean"/> class with the given value.
+            </summary>
+            <param name="value">The bool encapsulated by this.</param>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcBoolean.GenerateXml">
+            <summary>
+            Generates a value-XElement containing the information stored in this XmlRpc type.
+            </summary>
+            <returns>The generated Xml.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcBoolean.parseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Sets the Value property with the information contained in the value-XElement.
+            </summary>
+            <param name="xElement">The element containing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="P:XmlRpc.Types.XmlRpcBoolean.ContentElementName">
+            <summary>
+            The name of Elements of this type.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Types.XmlRpcDateTime">
+            <summary>
+            Represents an XmlRpcType containing a DateTime.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcDateTime.#ctor">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcDateTime"/> class with Value set to the defaut value for DateTime.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcDateTime.#ctor(System.DateTime)">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcDateTime"/> class with the given value.
+            </summary>
+            <param name="value">The DateTime encapsulated by this.</param>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcDateTime.GenerateXml">
+            <summary>
+            Generates a value-XElement containing the information stored in this date time.
+            </summary>
+            <returns>The generated Xml.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcDateTime.parseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Sets the Value property with the information contained in the value-XElement.
+            </summary>
+            <param name="xElement">The element containing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="P:XmlRpc.Types.XmlRpcDateTime.ContentElementName">
+            <summary>
+            The name of Elements of this type.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Types.XmlRpcDouble">
+            <summary>
+            Represents an XmlRpcType containing a double.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcDouble.#ctor">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcDouble"/> class with Value set to the default value for double.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcDouble.#ctor(System.Double)">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcDouble"/> class with the given value.
+            </summary>
+            <param name="value">The double encapsulated by this.</param>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcDouble.parseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Sets the Value property with the information contained in the value-XElement.
+            </summary>
+            <param name="xElement">The element containing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="P:XmlRpc.Types.XmlRpcDouble.ContentElementName">
+            <summary>
+            The name of value content elements for this XmlRpc type.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Types.XmlRpcI4">
+            <summary>
+            Represents an XmlRpcType containing an int.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Types.XmlRpcInt">
+            <summary>
+            Represents an XmlRpcType containing an int.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcInt.#ctor">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcInt"/> class with Value set to the default value for int.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcInt.#ctor(System.Int32)">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcInt"/> class with the given value.
+            </summary>
+            <param name="value">The int encapsulated by this.</param>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcInt.parseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Sets the Value property with the information contained in the value-XElement.
+            </summary>
+            <param name="xElement">The element containing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="P:XmlRpc.Types.XmlRpcInt.ContentElementName">
+            <summary>
+            The name of value content elements for this XmlRpc type.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcI4.#ctor">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcI4"/> class with Value set to the default value for int.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcI4.#ctor(System.Int32)">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcI4"/> class with the given value.
+            </summary>
+            <param name="value">The int encapsulated by this.</param>
+        </member>
+        <member name="P:XmlRpc.Types.XmlRpcI4.ContentElementName">
+            <summary>
+            The name of Elements of this type.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Types.XmlRpcString">
+            <summary>
+            Represents an XmlRpcType containing a string.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcString.#ctor">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcString"/> class with Value set to an empty string.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcString.#ctor(System.String)">
+            <summary>
+            Creates a new instance of the <see cref="T:XmlRpc.Types.XmlRpcString"/> class with the given value.
+            </summary>
+            <param name="value">The string encapsulated by this.</param>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcString.hasValueCorrectContent(System.Xml.Linq.XElement)">
+            <summary>
+            Checks whether the value-XElement has content fitting with this XmlRpc type.
+            </summary>
+            <param name="xElement">The element to check.</param>
+            <returns>Whether it has fitting content or not.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcString.parseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Sets the Value property with the information contained in the value-XElement.
+            </summary>
+            <param name="xElement">The element containing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="P:XmlRpc.Types.XmlRpcString.ContentElementName">
+            <summary>
+            The name of value content elements for this XmlRpc type.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.Types.XmlRpcStruct`1">
+            <summary>
+            Represents an XmlRpcType containing a xml rpc struct that is derived from <see cref="T:XmlRpc.Types.Structs.BaseStruct"/>.
+            </summary>
+            <typeparam name="TXmlRpcStruct">The Type of the struct. Also the Type of the Value property.</typeparam>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcStruct`1.#ctor">
+            <summary>
+            Creates a new instance of the <see cref="!:XmlRpc.Types.XmlRpcStruct"/> class with Value set to default value for TXmlRpcType.
+            </summary>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcStruct`1.#ctor(`0)">
+            <summary>
+            Creates a new instance of the <see cref="!:XmlRpc.Types.XmlRpcStruct"/> class with the given value.
+            </summary>
+            <param name="value">The struct encapsulated by this.</param>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcStruct`1.GenerateXml">
+            <summary>
+            Generates a value-XElement capsuling the struct.
+            </summary>
+            <returns>The generated Xml.</returns>
+        </member>
+        <member name="M:XmlRpc.Types.XmlRpcStruct`1.parseXml(System.Xml.Linq.XElement)">
+            <summary>
+            Sets the Value property with the information contained in the value-XElement.
+            </summary>
+            <param name="xElement">The element containing the information.</param>
+            <returns>Whether it was successful or not.</returns>
+        </member>
+        <member name="P:XmlRpc.Types.XmlRpcStruct`1.ContentElementName">
+            <summary>
+            The name of value content elements for this XmlRpc type.
+            </summary>
+        </member>
+        <member name="T:XmlRpc.XmlRpcElements">
+            <summary>
+            Contains constant names for the various elements that make up the XmlRpc messages.
+            </summary>
+        </member>
+    </members>
+</doc>

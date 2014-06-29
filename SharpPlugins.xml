@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SharpPlugins</name>
+    </assembly>
+    <members>
+        <member name="T:SharpPlugins.PluginBase">
+            <summary>
+            The abstract base class for plugins.
+            </summary>
+        </member>
+        <member name="M:SharpPlugins.PluginBase.GetAuthor(System.Type)">
+            <summary>
+            Gets the plugin's Author, or empty string if it fails.
+            </summary>
+            <param name="type">The plugin's Type.</param>
+            <returns>The plugin's Author, or empty string if it fails.</returns>
+        </member>
+        <member name="M:SharpPlugins.PluginBase.GetDescription(System.Type)">
+            <summary>
+            Gets the plugin's Description, or empty string if it fails.
+            </summary>
+            <param name="type">The plugin's Type.</param>
+            <returns>The plugin's Description, or empty string if it fails.</returns>
+        </member>
+        <member name="M:SharpPlugins.PluginBase.GetIdentifier(System.Type)">
+            <summary>
+            Gets the identifier for the plugin, or empty string if it fails.
+            </summary>
+            <param name="type">The plugin's Type.</param>
+            <returns>The identifier for the plugin, or empty string if it fails.</returns>
+        </member>
+        <member name="M:SharpPlugins.PluginBase.GetName(System.Type)">
+            <summary>
+            Gets the plugin's Name, or empty string if it fails.
+            </summary>
+            <param name="type">The plugin's Type.</param>
+            <returns>The plugin's Name, or empty string if it fails.</returns>
+        </member>
+        <member name="M:SharpPlugins.PluginBase.GetVersion(System.Type)">
+            <summary>
+            Gets the plugin's Version, or empty string if it fails.
+            </summary>
+            <param name="type">The plugin's Type.</param>
+            <returns>The plugin's Version, or empty string if it fails.</returns>
+        </member>
+        <member name="M:SharpPlugins.PluginBase.IsRegisteredPlugin(System.Type)">
+            <summary>
+            Gets whether the Type is a registered plugin or not.
+            </summary>
+            <param name="type">The plugin's Type.</param>
+            <returns>Whether the Type is a registered plugin or not.</returns>
+        </member>
+        <member name="M:SharpPlugins.PluginBase.getAttribute(System.Type)">
+            <summary>
+            Gets the plugin's RegisteredPluginAttribute, or null if it fails.
+            </summary>
+            <param name="type">The plugin's Type.</param>
+            <returns>The plugin's RegisteredPluginAttribute, or null if it fails.</returns>
+        </member>
+        <member name="T:SharpPlugins.PluginBase.RegisterPluginAttribute">
+            <summary>
+            Marks a PluginBase derived class as to be loaded and contains some optional information about the plugin.
+            </summary>
+        </member>
+        <member name="M:SharpPlugins.PluginBase.RegisterPluginAttribute.#ctor(System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Creates a new instance of the <see cref="T:SharpPlugins.PluginBase.RegisterPluginAttribute"/> class
+            with the identifier, given optional information about the plugin to mark it as to be loaded.
+            </summary>
+            <param name="identifier">The identifier for the plugin.</param>
+            <param name="author">The plugin's Author.</param>
+            <param name="name">The plugin's Name.</param>
+            <param name="version">The plugin's Version.</param>
+            <param name="description">The plugin's Description.</param>
+        </member>
+        <member name="P:SharpPlugins.PluginBase.RegisterPluginAttribute.Author">
+            <summary>
+            Gets the plugin's Author.
+            </summary>
+        </member>
+        <member name="P:SharpPlugins.PluginBase.RegisterPluginAttribute.Description">
+            <summary>
+            Gets the plugin's Description.
+            </summary>
+        </member>
+        <member name="P:SharpPlugins.PluginBase.RegisterPluginAttribute.Identifier">
+            <summary>
+            Gets an identifier for the plugin.
+            </summary>
+        </member>
+        <member name="P:SharpPlugins.PluginBase.RegisterPluginAttribute.Name">
+            <summary>
+            Gets the plugin's Name.
+            </summary>
+        </member>
+        <member name="P:SharpPlugins.PluginBase.RegisterPluginAttribute.Version">
+            <summary>
+            Gets the plugin's Version.
+            </summary>
+        </member>
+        <member name="T:SharpPlugins.PluginLoader">
+            <summary>
+            Contains static methods for loading plugin types from .dll files.
+            </summary>
+        </member>
+        <member name="M:SharpPlugins.PluginLoader.InstanciatePlugins``1(System.Collections.Generic.IEnumerable{System.Type})">
+            <summary>
+            Creates instances of all the given types that are instanciable plugins.
+            </summary>
+            <typeparam name="TPlugin">The PluginBase derived plugin type.</typeparam>
+            <param name="types">The types to create instances from.</param>
+            <returns>Instances of all the types that are instanciable plugins.</returns>
+        </member>
+        <member name="M:SharpPlugins.PluginLoader.InstanciatePlugins``1(System.Collections.Generic.IEnumerable{System.Type},System.Object[])">
+            <summary>
+            Creates instances of all the given Types that are instanciable plugins using the given arguments for the constructor.
+            </summary>
+            <typeparam name="TPlugin">The PluginBase derived plugin type.</typeparam>
+            <param name="types">The Types to create instances from.</param>
+            <param name="args">The arguments for the constructor.</param>
+            <returns>Instances of all the types that are instanciable plugins.</returns>
+        </member>
+        <member name="M:SharpPlugins.PluginLoader.IsInstanciablePlugin(System.Type)">
+            <summary>
+            Determines whether the given Type is an instanciable plugin or not.
+            </summary>
+            <param name="type">The Type to check.</param>
+            <returns>Whether the given Type is an instanciable plugin or not.</returns>
+        </member>
+        <member name="M:SharpPlugins.PluginLoader.LoadPluginsFromFiles``1(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Takes file paths and checks if each exists, and loads .dll files to find the instanciable plugin types deriving from TPlugin.
+            </summary>
+            <typeparam name="TPlugin">The Type that the plugins have to be derived from.</typeparam>
+            <param name="pluginFiles">The paths to the .dll files to check.</param>
+            <returns>The Types of the found instanciable plugins.</returns>
+        </member>
+        <member name="M:SharpPlugins.PluginLoader.LoadPluginsFromFolders``1(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Takes directory paths and checks if each exists, and loads .dll files, including from subfolders,
+            to find the instanciable plugin types deriving from TPlugin.
+            </summary>
+            <typeparam name="TPlugin">The Type that the plugins have to be derived from.</typeparam>
+            <param name="pluginFolders">The paths to the folders to check.</param>
+            <returns>The Types of the found instanciable plugins.</returns>
+        </member>
+    </members>
+</doc>
