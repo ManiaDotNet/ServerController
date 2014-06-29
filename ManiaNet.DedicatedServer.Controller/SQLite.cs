@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2009-2012 Krueger Systems, Inc.
+// Copyright (c) 2009-2014 Krueger Systems, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,21 @@
 #define USE_CSHARP_SQLITE
 #endif
 
+#if NETFX_CORE
+#define USE_NEW_REFLECTION_API
+#endif
+
 using System;
 using System.Diagnostics;
+
+#if !USE_SQLITEPCL_RAW
+
 using System.Runtime.InteropServices;
+
+#endif
+
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Linq;
 using System.Linq.Expressions;
@@ -40,6 +51,10 @@ using Sqlite3Statement = Community.CsharpSqlite.Sqlite3.Vdbe;
 using Sqlite3 = Sqlite.Sqlite3;
 using Sqlite3DatabaseHandle = Sqlite.Database;
 using Sqlite3Statement = Sqlite.Statement;
+#elif USE_SQLITEPCL_RAW
+using Sqlite3DatabaseHandle = SQLitePCL.sqlite3;
+using Sqlite3Statement = SQLitePCL.sqlite3_stmt;
+using Sqlite3 = SQLitePCL.raw;
 #else
 
 using Sqlite3DatabaseHandle = System.IntPtr;
@@ -49,29 +64,6 @@ using Sqlite3Statement = System.IntPtr;
 
 namespace SQLite
 {
-    [Flags]
-    public enum CreateFlags
-    {
-        None = 0,
-        ImplicitPK = 1,    // create a primary key for field called 'Id' (Orm.ImplicitPkName)
-        ImplicitIndex = 2, // create an index for fields ending in 'Id' (Orm.ImplicitIndexSuffix)
-        AllImplicit = 3,   // do both above
-
-        AutoIncPK = 4      // force PK field to be auto inc
-    }
-
-    [Flags]
-    public enum SQLiteOpenFlags
-    {
-        ReadOnly = 1, ReadWrite = 2, Create = 4,
-        NoMutex = 0x8000, FullMutex = 0x10000,
-        SharedCache = 0x20000, PrivateCache = 0x40000,
-        ProtectionComplete = 0x00100000,
-        ProtectionCompleteUnlessOpen = 0x00200000,
-        ProtectionCompleteUntilFirstUserAuthentication = 0x00300000,
-        ProtectionNone = 0x00400000
-    }
-
     public static class Orm
     {
         public const int DefaultMaxStringLength = 140;
@@ -81,7 +73,7 @@ namespace SQLite
         public static string Collation(MemberInfo p)
         {
             var attrs = p.GetCustomAttributes(typeof(CollationAttribute), true);
-#if !NETFX_CORE
+#if !USE_NEW_REFLECTION_API
             if (attrs.Length > 0)
             {
                 return ((CollationAttribute)attrs[0]).Value;
@@ -105,7 +97,7 @@ namespace SQLite
         public static bool IsAutoInc(MemberInfo p)
         {
             var attrs = p.GetCustomAttributes(typeof(AutoIncrementAttribute), true);
-#if !NETFX_CORE
+#if !USE_NEW_REFLECTION_API
             return attrs.Length > 0;
 #else
             return attrs.Count() > 0;
@@ -115,7 +107,7 @@ namespace SQLite
         public static bool IsMarkedNotNull(MemberInfo p)
         {
             var attrs = p.GetCustomAttributes(typeof(NotNullAttribute), true);
-#if !NETFX_CORE
+#if !USE_NEW_REFLECTION_API
             return attrs.Length > 0;
 #else
     return attrs.Count() > 0;
@@ -125,7 +117,7 @@ namespace SQLite
         public static bool IsPK(MemberInfo p)
         {
             var attrs = p.GetCustomAttributes(typeof(PrimaryKeyAttribute), true);
-#if !NETFX_CORE
+#if !USE_NEW_REFLECTION_API
             return attrs.Length > 0;
 #else
             return attrs.Count() > 0;
@@ -135,7 +127,7 @@ namespace SQLite
         public static int? MaxStringLength(PropertyInfo p)
         {
             var attrs = p.GetCustomAttributes(typeof(MaxLengthAttribute), true);
-#if !NETFX_CORE
+#if !USE_NEW_REFLECTION_API
             if (attrs.Length > 0)
                 return ((MaxLengthAttribute)attrs[0]).Value;
 #else
@@ -205,7 +197,7 @@ namespace SQLite
             else if (clrType == typeof(DateTimeOffset))
             {
                 return "bigint";
-#if !NETFX_CORE
+#if !USE_NEW_REFLECTION_API
             }
             else if (clrType.IsEnum)
             {
@@ -382,6 +374,9 @@ namespace SQLite
         [DllImport("sqlite3", EntryPoint = "sqlite3_step", CallingConvention = CallingConvention.Cdecl)]
         public static extern Result Step(IntPtr stmt);
 
+        [DllImport("sqlite3", EntryPoint = "sqlite3_threadsafe", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int Threadsafe();
+
         [DllImport("sqlite3", EntryPoint = "sqlite3_column_name16", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr ColumnName16Internal(IntPtr stmt, int index);
 
@@ -485,7 +480,7 @@ namespace SQLite
             Done = 101
         }
 
-#if !USE_CSHARP_SQLITE && !USE_WP8_NATIVE_SQLITE
+#if !USE_CSHARP_SQLITE && !USE_WP8_NATIVE_SQLITE && !USE_SQLITEPCL_RAW
 #if NETFX_CORE
         [DllImport ("sqlite3", EntryPoint = "sqlite3_prepare_v2", CallingConvention = CallingConvention.Cdecl)]
         public static extern Result Prepare2 (IntPtr db, byte[] queryBytes, int numBytes, out IntPtr stmt, IntPtr pzTail);
@@ -523,7 +518,7 @@ namespace SQLite
         public static Sqlite3Statement Prepare2(Sqlite3DatabaseHandle db, string query)
         {
             Sqlite3Statement stmt = default(Sqlite3Statement);
-#if USE_WP8_NATIVE_SQLITE
+#if USE_WP8_NATIVE_SQLITE || USE_SQLITEPCL_RAW
             var r = Sqlite3.sqlite3_prepare_v2(db, query, out stmt);
 #else
             stmt = new Sqlite3Statement();
@@ -590,6 +585,8 @@ namespace SQLite
         {
 #if USE_WP8_NATIVE_SQLITE
             return Sqlite3.sqlite3_bind_text(stmt, index, val, n);
+#elif USE_SQLITEPCL_RAW
+            return Sqlite3.sqlite3_bind_text(stmt, index, val);
 #else
             return Sqlite3.sqlite3_bind_text(stmt, index, val, n, null);
 #endif
@@ -599,6 +596,8 @@ namespace SQLite
         {
 #if USE_WP8_NATIVE_SQLITE
             return Sqlite3.sqlite3_bind_blob(stmt, index, val, n);
+#elif USE_SQLITEPCL_RAW
+            return Sqlite3.sqlite3_bind_blob(stmt, index, val);
 #else
             return Sqlite3.sqlite3_bind_blob(stmt, index, val, n, null);
 #endif
@@ -669,10 +668,12 @@ namespace SQLite
             return ColumnBlob(stmt, index);
         }
 
+#if !USE_SQLITEPCL_RAW
         public static Result EnableLoadExtension(Sqlite3DatabaseHandle db, int onoff)
         {
             return (Result)Sqlite3.sqlite3_enable_load_extension(db, onoff);
         }
+#endif
 
         public static ExtendedResult ExtendedErrCode(Sqlite3DatabaseHandle db)
         {
@@ -751,6 +752,19 @@ namespace SQLite
         public MaxLengthAttribute(int length)
         {
             Value = length;
+        }
+    }
+
+    public class NotifyTableChangedEventArgs : EventArgs
+    {
+        public NotifyTableChangedAction Action { get; private set; }
+
+        public TableMapping Table { get; private set; }
+
+        public NotifyTableChangedEventArgs(TableMapping table, NotifyTableChangedAction action)
+        {
+            Table = table;
+            Action = action;
         }
     }
 
@@ -1116,7 +1130,7 @@ namespace SQLite
                 else if (value is DateTimeOffset)
                 {
                     SQLite3.BindInt64(stmt, index, ((DateTimeOffset)value).UtcTicks);
-#if !NETFX_CORE
+#if !USE_NEW_REFLECTION_API
                 }
                 else if (value.GetType().IsEnum)
                 {
@@ -1234,7 +1248,7 @@ namespace SQLite
                 else if (clrType == typeof(DateTimeOffset))
                 {
                     return new DateTimeOffset(SQLite3.ColumnInt64(stmt, index), TimeSpan.Zero);
-#if !NETFX_CORE
+#if !USE_NEW_REFLECTION_API
                 }
                 else if (clrType.IsEnum)
                 {
@@ -1303,13 +1317,6 @@ namespace SQLite
     public partial class SQLiteConnection : IDisposable
     {
         internal static readonly Sqlite3DatabaseHandle NullHandle = default(Sqlite3DatabaseHandle);
-
-        /// <summary>
-        /// Used to list some code that we want the MonoTouch linker
-        /// to see, but that we never want to actually execute.
-        /// </summary>
-        private static bool _preserveDuringLinkMagic;
-
         private TimeSpan _busyTimeout;
         private long _elapsedMilliseconds = 0;
         private Dictionary<string, TableMapping> _mappings = null;
@@ -1366,15 +1373,6 @@ namespace SQLite
 
         public bool Trace { get; set; }
 
-        static SQLiteConnection()
-        {
-            if (_preserveDuringLinkMagic)
-            {
-                var ti = new ColumnInfo();
-                ti.Name = "magic";
-            }
-        }
-
         /// <summary>
         /// Constructs a new SQLiteConnection and opens a SQLite database specified by databasePath.
         /// </summary>
@@ -1417,7 +1415,7 @@ namespace SQLite
 
             Sqlite3DatabaseHandle handle;
 
-#if SILVERLIGHT || USE_CSHARP_SQLITE
+#if SILVERLIGHT || USE_CSHARP_SQLITE || USE_SQLITEPCL_RAW
             var r = SQLite3.Open (databasePath, out handle, (int)openFlags, IntPtr.Zero);
 #else
             // open using the byte[]
@@ -1806,7 +1804,10 @@ namespace SQLite
                 throw new NotSupportedException("Cannot delete " + map.TableName + ": it has no PK");
             }
             var q = string.Format("delete from \"{0}\" where \"{1}\" = ?", map.TableName, pk.Name);
-            return Execute(q, pk.GetValue(objectToDelete));
+            var count = Execute(q, pk.GetValue(objectToDelete));
+            if (count > 0)
+                OnTableChanged(map, NotifyTableChangedAction.Delete);
+            return count;
         }
 
         /// <summary>
@@ -1830,7 +1831,10 @@ namespace SQLite
                 throw new NotSupportedException("Cannot delete " + map.TableName + ": it has no PK");
             }
             var q = string.Format("delete from \"{0}\" where \"{1}\" = ?", map.TableName, pk.Name);
-            return Execute(q, primaryKey);
+            var count = Execute(q, primaryKey);
+            if (count > 0)
+                OnTableChanged(map, NotifyTableChangedAction.Delete);
+            return count;
         }
 
         /// <summary>
@@ -1848,7 +1852,10 @@ namespace SQLite
         {
             var map = GetMapping(typeof(T));
             var query = string.Format("delete from \"{0}\"", map.TableName);
-            return Execute(query);
+            var count = Execute(query);
+            if (count > 0)
+                OnTableChanged(map, NotifyTableChangedAction.Delete);
+            return count;
         }
 
         public void Dispose()
@@ -2166,7 +2173,7 @@ namespace SQLite
 
             var map = GetMapping(objType);
 
-#if NETFX_CORE
+#if USE_NEW_REFLECTION_API
             if (map.PK != null && map.PK.IsAutoGuid)
             {
                 // no GetProperty so search our way up the inheritance chain till we find it
@@ -2213,24 +2220,31 @@ namespace SQLite
             var insertCmd = map.GetInsertCommand(this, extra);
             int count;
 
-            try
+            lock (insertCmd)
             {
-                count = insertCmd.ExecuteNonQuery(vals);
-            }
-            catch (SQLiteException ex)
-            {
-                if (SQLite3.ExtendedErrCode(this.Handle) == SQLite3.ExtendedResult.ConstraintNotNull)
+                // We lock here to protect the prepared statement returned via GetInsertCommand.
+                // A SQLite prepared statement can be bound for only one operation at a time.
+                try
                 {
-                    throw NotNullConstraintViolationException.New(ex.Result, ex.Message, map, obj);
+                    count = insertCmd.ExecuteNonQuery(vals);
                 }
-                throw;
-            }
+                catch (SQLiteException ex)
+                {
+                    if (SQLite3.ExtendedErrCode(this.Handle) == SQLite3.ExtendedResult.ConstraintNotNull)
+                    {
+                        throw NotNullConstraintViolationException.New(ex.Result, ex.Message, map, obj);
+                    }
+                    throw;
+                }
 
-            if (map.HasAutoIncPK)
-            {
-                var id = SQLite3.LastInsertRowid(Handle);
-                map.SetAutoIncPK(obj, id);
+                if (map.HasAutoIncPK)
+                {
+                    var id = SQLite3.LastInsertRowid(Handle);
+                    map.SetAutoIncPK(obj, id);
+                }
             }
+            if (count > 0)
+                OnTableChanged(map, NotifyTableChangedAction.Insert);
 
             return count;
         }
@@ -2584,8 +2598,11 @@ namespace SQLite
                     throw NotNullConstraintViolationException.New(ex, map, obj);
                 }
 
-                throw ex;
+                throw;
             }
+
+            if (rowsAffected > 0)
+                OnTableChanged(map, NotifyTableChangedAction.Update);
 
             return rowsAffected;
         }
@@ -2646,7 +2663,7 @@ namespace SQLite
                     // TODO: Mild race here, but inescapable without locking almost everywhere.
                     if (0 <= depth && depth < _transactionDepth)
                     {
-#if NETFX_CORE
+#if NETFX_CORE || USE_SQLITEPCL_RAW
                         Volatile.Write (ref _transactionDepth, depth);
 #elif SILVERLIGHT
                         _transactionDepth = depth;
@@ -2690,6 +2707,13 @@ namespace SQLite
             }
         }
 
+        private void OnTableChanged(TableMapping table, NotifyTableChangedAction action)
+        {
+            var ev = TableChanged;
+            if (ev != null)
+                ev(this, new NotifyTableChangedEventArgs(table, action));
+        }
+
         /// <summary>
         /// Rolls back the transaction that was begun by <see cref="BeginTransaction"/>.
         /// </summary>
@@ -2719,6 +2743,30 @@ namespace SQLite
             }
             // No need to rollback if there are no transactions open.
         }
+
+        public event EventHandler<NotifyTableChangedEventArgs> TableChanged;
+
+#if __IOS__
+        static SQLiteConnection ()
+        {
+            if (_preserveDuringLinkMagic) {
+                var ti = new ColumnInfo ();
+                ti.Name = "magic";
+            }
+        }
+
+        /// <summary>
+        /// Used to list some code that we want the MonoTouch linker
+        /// to see, but that we never want to actually execute.
+        /// </summary>
+        static bool _preserveDuringLinkMagic;
+#endif
+
+#if !USE_SQLITEPCL_RAW
+#endif
+
+#if !USE_SQLITEPCL_RAW
+#endif
 
         private struct IndexedColumn
         {
@@ -2757,6 +2805,7 @@ namespace SQLite
         }
     }
 
+    [Serializable]
     public class SQLiteException : Exception
     {
         public SQLite3.Result Result { get; private set; }
@@ -2790,9 +2839,7 @@ namespace SQLite
 
         private Column[] _insertColumns;
 
-        private PreparedSqlLiteInsertCommand _insertCommand;
-
-        private string _insertCommandExtra;
+        private ConcurrentDictionary<string, PreparedSqlLiteInsertCommand> _insertCommandMap;
 
         private Column[] _insertOrReplaceColumns;
 
@@ -2836,7 +2883,7 @@ namespace SQLite
         {
             MappedType = type;
 
-#if NETFX_CORE
+#if USE_NEW_REFLECTION_API
             var tableAttr = (TableAttribute)System.Reflection.CustomAttributeExtensions
                 .GetCustomAttribute(type.GetTypeInfo(), typeof(TableAttribute), true);
 #else
@@ -2845,7 +2892,7 @@ namespace SQLite
 
             TableName = tableAttr != null ? tableAttr.Name : MappedType.Name;
 
-#if !NETFX_CORE
+#if !USE_NEW_REFLECTION_API
             var props = MappedType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty);
 #else
             var props = from p in MappedType.GetRuntimeProperties()
@@ -2855,7 +2902,7 @@ namespace SQLite
             var cols = new List<Column>();
             foreach (var p in props)
             {
-#if !NETFX_CORE
+#if !USE_NEW_REFLECTION_API
                 var ignore = p.GetCustomAttributes(typeof(IgnoreAttribute), true).Length > 0;
 #else
                 var ignore = p.GetCustomAttributes (typeof(IgnoreAttribute), true).Count() > 0;
@@ -2889,6 +2936,7 @@ namespace SQLite
                 // People should not be calling Get/Find without a PK
                 GetByPrimaryKeySql = string.Format("select * from \"{0}\" limit 1", TableName);
             }
+            _insertCommandMap = new ConcurrentDictionary<string, PreparedSqlLiteInsertCommand>();
         }
 
         public Column FindColumn(string columnName)
@@ -2905,18 +2953,18 @@ namespace SQLite
 
         public PreparedSqlLiteInsertCommand GetInsertCommand(SQLiteConnection conn, string extra)
         {
-            if (_insertCommand == null)
+            PreparedSqlLiteInsertCommand prepCmd;
+            if (!_insertCommandMap.TryGetValue(extra, out prepCmd))
             {
-                _insertCommand = CreateInsertCommand(conn, extra);
-                _insertCommandExtra = extra;
+                prepCmd = CreateInsertCommand(conn, extra);
+                if (!_insertCommandMap.TryAdd(extra, prepCmd))
+                {
+                    // Concurrent add attempt beat us.
+                    prepCmd.Dispose();
+                    _insertCommandMap.TryGetValue(extra, out prepCmd);
+                }
             }
-            else if (_insertCommandExtra != extra)
-            {
-                _insertCommand.Dispose();
-                _insertCommand = CreateInsertCommand(conn, extra);
-                _insertCommandExtra = extra;
-            }
-            return _insertCommand;
+            return prepCmd;
         }
 
         public void SetAutoIncPK(object obj, long id)
@@ -2929,11 +2977,11 @@ namespace SQLite
 
         protected internal void Dispose()
         {
-            if (_insertCommand != null)
+            foreach (var pair in _insertCommandMap)
             {
-                _insertCommand.Dispose();
-                _insertCommand = null;
+                pair.Value.Dispose();
             }
+            _insertCommandMap = null;
         }
 
         private PreparedSqlLiteInsertCommand CreateInsertCommand(SQLiteConnection conn, string extra)
@@ -3420,7 +3468,7 @@ namespace SQLite
                     //
                     object val = null;
 
-#if !NETFX_CORE
+#if !USE_NEW_REFLECTION_API
                     if (mem.Member.MemberType == MemberTypes.Property)
                     {
 #else
@@ -3428,7 +3476,7 @@ namespace SQLite
 #endif
                         var m = (PropertyInfo)mem.Member;
                         val = m.GetValue(obj, null);
-#if !NETFX_CORE
+#if !USE_NEW_REFLECTION_API
                     }
                     else if (mem.Member.MemberType == MemberTypes.Field)
                     {
@@ -3444,7 +3492,7 @@ namespace SQLite
                     }
                     else
                     {
-#if !NETFX_CORE
+#if !USE_NEW_REFLECTION_API
                         throw new NotSupportedException("MemberExpr: " + mem.Member.MemberType);
 #else
                         throw new NotSupportedException ("MemberExpr: " + mem.Member.DeclaringType);
@@ -3613,10 +3661,6 @@ namespace SQLite
 
         public bool StoreDateTimeAsTicks { get; private set; }
 
-#if NETFX_CORE
-        static readonly string MetroStyleDataPath = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
-#endif
-
         public SQLiteConnectionString(string databasePath, bool storeDateTimeAsTicks)
         {
             ConnectionString = databasePath;
@@ -3628,5 +3672,39 @@ namespace SQLite
             DatabasePath = databasePath;
 #endif
         }
+
+#if NETFX_CORE
+        static readonly string MetroStyleDataPath = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
+#endif
+    }
+
+    [Flags]
+    public enum CreateFlags
+    {
+        None = 0,
+        ImplicitPK = 1,    // create a primary key for field called 'Id' (Orm.ImplicitPkName)
+        ImplicitIndex = 2, // create an index for fields ending in 'Id' (Orm.ImplicitIndexSuffix)
+        AllImplicit = 3,   // do both above
+
+        AutoIncPK = 4      // force PK field to be auto inc
+    }
+
+    public enum NotifyTableChangedAction
+    {
+        Insert,
+        Update,
+        Delete,
+    }
+
+    [Flags]
+    public enum SQLiteOpenFlags
+    {
+        ReadOnly = 1, ReadWrite = 2, Create = 4,
+        NoMutex = 0x8000, FullMutex = 0x10000,
+        SharedCache = 0x20000, PrivateCache = 0x40000,
+        ProtectionComplete = 0x00100000,
+        ProtectionCompleteUnlessOpen = 0x00200000,
+        ProtectionCompleteUntilFirstUserAuthentication = 0x00300000,
+        ProtectionNone = 0x00400000
     }
 }
