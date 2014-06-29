@@ -19,7 +19,7 @@ namespace ManiaNet.DedicatedServer.Controller
         public static string FormatMilliseconds(int time, string format = "mm:ss.ff", bool sign = false) {
             string result = "";
             bool negative = time < 0;
-            result = TimeSpan.FromMilliseconds(Math.Abs(time)).ToString(format);
+            result = new DateTime(TimeSpan.FromMilliseconds(Math.Abs(time)).Ticks).ToString(format);
             if (result[0] == '0')
                 result = result.Substring(1);
             if (sign)
@@ -44,6 +44,21 @@ namespace ManiaNet.DedicatedServer.Controller
             if (level.Contains('f') || level.Contains('a'))
                 result = Regex.Replace(result, @"\$[nwmoiszt]", "");
             return result;
+        }
+
+        /// <summary>
+        /// Returns the path to the Country Flat corresponding to the given zone.
+        /// </summary>
+        /// <param name="zone">A ManiaPlanet Account Zone</param>
+        /// <returns></returns>
+        public static string AvatarByZone(string zone)
+        {
+            string path;
+            if (String.IsNullOrWhiteSpace(zone))
+                path = "other";
+            else
+                path = String.Join("|", zone.Split("|".ToCharArray()).Take(3));
+            return @"Skins\Avatars\Flags\other.dds";
         }
     }
 }
