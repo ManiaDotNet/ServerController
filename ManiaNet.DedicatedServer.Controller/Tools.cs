@@ -45,20 +45,5 @@ namespace ManiaNet.DedicatedServer.Controller
                 result = Regex.Replace(result, @"\$[nwmoiszt]", "");
             return result;
         }
-
-        /// <summary>
-        /// Returns the path to the Country Flat corresponding to the given zone.
-        /// </summary>
-        /// <param name="zone">A ManiaPlanet Account Zone</param>
-        /// <returns></returns>
-        public static string AvatarByZone(string zone)
-        {
-            string path;
-            if (String.IsNullOrWhiteSpace(zone))
-                path = "other";
-            else
-                path = String.Join("|", zone.Split("|".ToCharArray()).Take(3));
-            return @"Skins\Avatars\Flags\other.dds";
-        }
     }
 }
