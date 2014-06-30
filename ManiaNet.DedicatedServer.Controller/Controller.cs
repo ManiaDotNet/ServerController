@@ -25,15 +25,6 @@ namespace ManiaNet.DedicatedServer.Controller
         private ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>> registeredCommands = new ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>>();
         private IXmlRpcClient xmlRpcClient;
 
-        public ServerController(IXmlRpcClient xmlRpcClient, Config config)
-        {
-            this.xmlRpcClient = xmlRpcClient;
-            this.xmlRpcClient.MethodResponse += xmlRpcClient_MethodResponse;
-            this.xmlRpcClient.ServerCallback += xmlRpcClient_ServerCallback;
-
-            Configuration = config;
-        }
-
         public Config Configuration { get; private set; }
 
         /// <summary>
@@ -42,6 +33,15 @@ namespace ManiaNet.DedicatedServer.Controller
         public IEnumerable<string> RegisteredCommands
         {
             get { return registeredCommands.Keys; }
+        }
+
+        public ServerController(IXmlRpcClient xmlRpcClient, Config config)
+        {
+            this.xmlRpcClient = xmlRpcClient;
+            this.xmlRpcClient.MethodResponse += xmlRpcClient_MethodResponse;
+            this.xmlRpcClient.ServerCallback += xmlRpcClient_ServerCallback;
+
+            Configuration = config;
         }
 
         /// <summary>
@@ -490,17 +490,6 @@ namespace ManiaNet.DedicatedServer.Controller
         #region Callback Events
 
         /// <summary>
-        /// Delegate for the various server callback events.
-        /// </summary>
-        /// <typeparam name="TMethodCall">The type representing the called method.</typeparam>
-        /// <param name="sender">The ServerController that fired the event.</param>
-        /// <param name="methodCall">The method call information.</param>
-        public delegate void ServerCallbackEventHandler<TMethodCall>(ServerController sender, TMethodCall methodCall)
-            where TMethodCall : XmlRpcMethodCall<XmlRpcBoolean, bool>;
-
-        //public delegate void AllServerCallbackEventHandler<>
-
-        /// <summary>
         /// Fires when a map begins.
         /// </summary>
         public event ServerCallbackEventHandler<ManiaPlanetBeginMap> BeginMap;
@@ -583,6 +572,15 @@ namespace ManiaNet.DedicatedServer.Controller
         public event ServerCallbackEventHandler<ManiaPlanetPlayerManialinkPageAnswer> PlayerManialinkPageAnswer;
 
         /// <summary>
+        /// Delegate for the various server callback events.
+        /// </summary>
+        /// <typeparam name="TMethodCall">The type representing the called method.</typeparam>
+        /// <param name="sender">The ServerController that fired the event.</param>
+        /// <param name="methodCall">The method call information.</param>
+        public delegate void ServerCallbackEventHandler<TMethodCall>(ServerController sender, TMethodCall methodCall)
+            where TMethodCall : XmlRpcMethodCall<XmlRpcBoolean, bool>;
+
+        /// <summary>
         /// Fires when the server is started.
         /// </summary>
         public event ServerCallbackEventHandler<ManiaPlanetServerStart> ServerStart;
@@ -615,19 +613,6 @@ namespace ManiaNet.DedicatedServer.Controller
         public class Config
         {
             /// <summary>
-            /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.ServerController.Config"/> class with the given Login and Password.
-            /// </summary>
-            /// <param name="login">The Login that the controller authenticates with; SuperAdmin by default.</param>
-            /// <param name="password">The Password that the controller authenticates with; SuperAdmin by default.</param>
-            /// <param name="pluginFolders">The path(s) to the folders used to load plugins from; { "plugins" } by default.</param>
-            public Config(string login = "SuperAdmin", string password = "SuperAdmin", IEnumerable<string> pluginFolders = null)
-            {
-                Login = login;
-                Password = password;
-                PluginFolders = pluginFolders ?? new string[] { "plugins" };
-            }
-
-            /// <summary>
             /// Gets the Login that the controller will use to authenticate with the xml rpc server.
             /// </summary>
             public string Login { get; private set; }
@@ -641,6 +626,19 @@ namespace ManiaNet.DedicatedServer.Controller
             /// Gets the path(s) to the folders used to load plugins from.
             /// </summary>
             public IEnumerable<string> PluginFolders { get; private set; }
+
+            /// <summary>
+            /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.ServerController.Config"/> class with the given Login and Password.
+            /// </summary>
+            /// <param name="login">The Login that the controller authenticates with; SuperAdmin by default.</param>
+            /// <param name="password">The Password that the controller authenticates with; SuperAdmin by default.</param>
+            /// <param name="pluginFolders">The path(s) to the folders used to load plugins from; { "plugins" } by default.</param>
+            public Config(string login = "SuperAdmin", string password = "SuperAdmin", IEnumerable<string> pluginFolders = null)
+            {
+                Login = login;
+                Password = password;
+                PluginFolders = pluginFolders ?? new string[] { "plugins" };
+            }
         }
     }
 }
