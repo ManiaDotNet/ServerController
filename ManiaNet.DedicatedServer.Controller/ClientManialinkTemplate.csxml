@@ -1,0 +1,6 @@
+﻿<manialink version="1">
+	@foreach (string manialinkElement in Model)
+	{
+		@manialinkElement
+	}
+</manialink>

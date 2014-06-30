@@ -1,8 +1,8 @@
 ﻿using SharpPlugins;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using XmlRpc;
 
 namespace ManiaNet.DedicatedServer.Controller.Plugins
 {
@@ -11,6 +11,27 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
     /// </summary>
     public abstract partial class ControllerPlugin : PluginBase
     {
+        /// <summary>
+        /// Dictionary containing the manialink elements that the plugin wants to display.
+        /// <para/>
+        /// Key is the login of the client that the elements are for, Value is a string containing the elements.
+        /// <para/>
+        /// * means any client. This has a lower precedence than the actual login.
+        /// </summary>
+        protected Dictionary<string, string> clientManialinks = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Gets a readonly dictionary containing the manialink elements that the plugin wants to display.
+        /// <para/>
+        /// Key is the login of the client that the elements are for, Value is a string containing the elements.
+        /// <para/>
+        /// * means any client. This has a lower precedence than the actual login.
+        /// </summary>
+        public ReadOnlyDictionary<string, string> ClientManialinks
+        {
+            get { return new ReadOnlyDictionary<string, string>(clientManialinks); }
+        }
+
         /// <summary>
         /// Gets called when the plugin is loaded.
         /// Use this to add your methods to the controller's events and load your saved data.

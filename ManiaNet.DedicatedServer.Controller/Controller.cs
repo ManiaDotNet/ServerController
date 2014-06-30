@@ -1,10 +1,15 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Plugins;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
+using RazorEngine;
 using SharpPlugins;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -19,21 +24,20 @@ namespace ManiaNet.DedicatedServer.Controller
     /// </summary>
     public class ServerController
     {
+        private List<string> clients = new List<string>();
+        private Thread manialinkSendLoopThread;
         private ConcurrentDictionary<uint, string> methodResponses = new ConcurrentDictionary<uint, string>();
         private Dictionary<string, ControllerPlugin> plugins = new Dictionary<string, ControllerPlugin>();
         private List<Thread> pluginThreads;
         private ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>> registeredCommands = new ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>>();
         private IXmlRpcClient xmlRpcClient;
 
-        public Config Configuration { get; private set; }
-
-        /// <summary>
-        /// Gets the registered commands (all in lower case).
-        /// </summary>
-        public IEnumerable<string> RegisteredCommands
+        public ReadOnlyCollection<string> Clients
         {
-            get { return registeredCommands.Keys; }
+            get { return new ReadOnlyCollection<string>(clients); }
         }
+
+        public Config Configuration { get; private set; }
 
         public ServerController(IXmlRpcClient xmlRpcClient, Config config)
         {
@@ -85,34 +89,8 @@ namespace ManiaNet.DedicatedServer.Controller
         }
 
         /// <summary>
-        /// Finds out whether the given command identifier is already taken.
+        /// Performs a stop-unload-load-start cycle on the plugins.
         /// </summary>
-        /// <param name="cmdName">The command identifier to check the availability for.</param>
-        /// <returns>Whether it's taken or not.</returns>
-        public bool IsRegisteredCommand(string cmdName)
-        {
-            return registeredCommands.ContainsKey(cmdName.ToLower());
-        }
-
-        /// <summary>
-        /// Trys to register an action for a given command.
-        /// <para/>
-        /// If a message is an registered command, it doesn't activate the PlayerChat event.
-        /// </summary>
-        /// <param name="cmdName">The command identifier. Will be stored in lower case.</param>
-        /// <param name="cmdAction">The action to be performed when the command is received. The parameter is the full message parameters.<para/>
-        /// If you're planning to unregister the command, you have to store the action.</param>
-        /// <returns>Whether it was successfully added or not.</returns>
-        public bool RegisterCommand(string cmdName, Action<ManiaPlanetPlayerChat> cmdAction)
-        {
-            string cmd = cmdName.ToLower();
-
-            if (registeredCommands.ContainsKey(cmd))
-                return false;
-
-            return registeredCommands.TryAdd(cmd, cmdAction);
-        }
-
         public void ReloadPlugins()
         {
             stopPlugins();
@@ -124,12 +102,66 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <summary>
         /// Starts the controller.
         /// </summary>
-        public void Start()
+        public bool Start()
         {
             xmlRpcClient.StartReceive();
-            authenticate();
+
+            if (!authenticate())
+                return false;
+
+            if (Configuration.AllowManialinkHiding)
+            {
+                if (!RegisterCommand("hide", playerChatCall =>
+                    {
+                        string[] parts = playerChatCall.Text.Split(' ');
+
+                        if (parts.Length < 2)
+                            CallMethod(new ChatSendServerMessageToId("Usage: /hide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
+
+                        if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin))
+                            clientsDisabledPluginDisplays.Add(playerChatCall.ClientLogin, new List<string>());
+
+                        foreach (var pluginId in parts.Skip(1).Select(pluginId => pluginId.ToLower()))
+                        {
+                            if (!plugins.ContainsKey(pluginId))
+                                continue;
+
+                            if (!clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Contains(pluginId))
+                                clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Add(pluginId);
+                        }
+                    }))
+                    return false;
+
+                if (!RegisterCommand("unhide", playerChatCall =>
+                    {
+                        string[] parts = playerChatCall.Text.Split(' ');
+
+                        if (parts.Length < 2)
+                            CallMethod(new ChatSendServerMessageToId("Usage: /unhide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
+
+                        if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin))
+                            return;
+
+                        foreach (var pluginId in parts.Skip(1).Select(pluginId => pluginId.ToLower()))
+                        {
+                            if (!plugins.ContainsKey(pluginId))
+                                continue;
+
+                            clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Remove(pluginId);
+                        }
+                    }))
+                    return false;
+            }
+
+            if (!setUpClientsList())
+                return false;
+
+            startManialinkSendLoop();
+
             loadPlugins();
             startPlugins();
+
+            return true;
         }
 
         /// <summary>
@@ -140,35 +172,6 @@ namespace ManiaNet.DedicatedServer.Controller
             stopPlugins();
             unloadPlugins();
             xmlRpcClient.EndReceive();
-        }
-
-        /// <summary>
-        /// Trys to unregister a command, given its identifier and action.
-        /// </summary>
-        /// <param name="cmdName">The command identifier.</param>
-        /// <param name="cmdAction">The that was performed when the command was received. Has to be the same (reference) action as the one registered.</param>
-        /// <returns>Whether there's now no command with the given identifier registered.</returns>
-        public bool UnregisterCommand(string cmdName, Action<ManiaPlanetPlayerChat> cmdAction)
-        {
-            string cmd = cmdName.ToLower();
-
-            if (!registeredCommands.ContainsKey(cmd))
-                return true;
-
-            bool isSameEntry = false;
-            foreach (var registeredCommand in registeredCommands)
-            {
-                if (registeredCommand.Key.Equals(cmd) && registeredCommand.Value.Equals(cmdAction))
-                {
-                    isSameEntry = true;
-                    break;
-                }
-            }
-
-            if (!isSameEntry)
-                return false;
-
-            return registeredCommands.TryRemove(cmd, out cmdAction);
         }
 
         private bool authenticate()
@@ -422,6 +425,149 @@ namespace ManiaNet.DedicatedServer.Controller
             }
         }
 
+        private bool setUpClientsList()
+        {
+            GetPlayerList getPlayerListCall = new GetPlayerList(100, 0);
+
+            if (!CallMethod(getPlayerListCall, 1000))
+                return false;
+
+            if (getPlayerListCall.HadFault)
+                return false;
+
+            clients = getPlayerListCall.ReturnValue.Select(clientInfo => clientInfo.Value.Login).ToList();
+
+            return true;
+        }
+
+        #region Manialink Display
+
+        private Dictionary<string, List<string>> clientsDisabledPluginDisplays = new Dictionary<string, List<string>>();
+        private string manialinkTemplate = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("ManiaNet.DedicatedServer.Controller.ClientManialinkTemplate.csxml")).ReadToEnd();
+
+        private void manialinkSendLoop()
+        {
+            var timeTaken = new TimeSpan(0);
+            var clientManialinkElements = new List<string>();
+            List<string> clientDisabledPluginDisplays;
+
+            while (true)
+            {
+                DateTime startTime = DateTime.Now;
+
+                foreach (var client in Clients)
+                {
+                    clientManialinkElements.Clear();
+
+                    clientsDisabledPluginDisplays.TryGetValue(client, out clientDisabledPluginDisplays);
+                    clientDisabledPluginDisplays = clientDisabledPluginDisplays ?? new List<string>();
+
+                    // Iterate over all the plugins that aren't on the disabled-list of the client.
+                    foreach (var plugin in plugins.Where(plugin => !clientDisabledPluginDisplays.Contains(plugin.Key)))
+                    {
+                        // See if there's a value specifically for the client, or otherwise one for all.
+                        if (plugin.Value.ClientManialinks.ContainsKey(client))
+                            clientManialinkElements.Add(plugin.Value.ClientManialinks[client]);
+                        else if (plugin.Value.ClientManialinks.ContainsKey("*"))
+                            clientManialinkElements.Add(plugin.Value.ClientManialinks["*"]);
+                    }
+
+                    string clientManialink = WebUtility.HtmlDecode(Razor.Parse(manialinkTemplate, clientManialinkElements, client));
+
+                    CallMethod(new SendDisplayManialinkPageToLogin(client, clientManialink, 0, false), 0);
+                }
+
+                timeTaken = DateTime.Now - startTime;
+
+                int delay = Configuration.ManialinkRefreshInterval - (int)timeTaken.TotalMilliseconds;
+
+                if (delay > 0)
+                    Thread.Sleep(delay);
+            }
+        }
+
+        private void startManialinkSendLoop()
+        {
+            manialinkSendLoopThread = new Thread(manialinkSendLoop);
+            manialinkSendLoopThread.Name = xmlRpcClient.Name + " Manialink Send Loop";
+            manialinkSendLoopThread.IsBackground = true;
+            manialinkSendLoopThread.Start();
+        }
+
+        #endregion Manialink Display
+
+        #region Command Registration
+
+        /// <summary>
+        /// Gets the registered commands (all in lower case).
+        /// </summary>
+        public IEnumerable<string> RegisteredCommands
+        {
+            get { return registeredCommands.Keys; }
+        }
+
+        /// <summary>
+        /// Finds out whether the given command identifier is already taken.
+        /// </summary>
+        /// <param name="cmdName">The command identifier to check the availability for.</param>
+        /// <returns>Whether it's taken or not.</returns>
+        public bool IsRegisteredCommand(string cmdName)
+        {
+            return registeredCommands.ContainsKey(cmdName.ToLower());
+        }
+
+        /// <summary>
+        /// Trys to register an action for a given command.
+        /// <para/>
+        /// If a message is an registered command, it doesn't activate the PlayerChat event.
+        /// </summary>
+        /// <param name="cmdName">The command identifier. Will be stored in lower case.</param>
+        /// <param name="cmdAction">The action to be performed when the command is received. The parameter is the full message parameters.<para/>
+        /// If you're planning to unregister the command, you have to store the action.</param>
+        /// <returns>Whether it was successfully added or not.</returns>
+        public bool RegisterCommand(string cmdName, Action<ManiaPlanetPlayerChat> cmdAction)
+        {
+            string cmd = cmdName.ToLower();
+
+            if (registeredCommands.ContainsKey(cmd))
+                return false;
+
+            return registeredCommands.TryAdd(cmd, cmdAction);
+        }
+
+        /// <summary>
+        /// Trys to unregister a command, given its identifier and action.
+        /// </summary>
+        /// <param name="cmdName">The command identifier.</param>
+        /// <param name="cmdAction">The that was performed when the command was received. Has to be the same (reference) action as the one registered.</param>
+        /// <returns>Whether there's now no command with the given identifier registered.</returns>
+        public bool UnregisterCommand(string cmdName, Action<ManiaPlanetPlayerChat> cmdAction)
+        {
+            string cmd = cmdName.ToLower();
+
+            if (!registeredCommands.ContainsKey(cmd))
+                return true;
+
+            bool isSameEntry = false;
+            foreach (var registeredCommand in registeredCommands)
+            {
+                if (registeredCommand.Key.Equals(cmd) && registeredCommand.Value.Equals(cmdAction))
+                {
+                    isSameEntry = true;
+                    break;
+                }
+            }
+
+            if (!isSameEntry)
+                return false;
+
+            return registeredCommands.TryRemove(cmd, out cmdAction);
+        }
+
+        #endregion Command Registration
+
+        #region Plugin Control
+
         private void loadPlugins()
         {
             Console.WriteLine("Loading Plugins...");
@@ -475,6 +621,8 @@ namespace ManiaNet.DedicatedServer.Controller
 
             Console.WriteLine("Done");
         }
+
+        #endregion Plugin Control
 
         private void xmlRpcClient_MethodResponse(IXmlRpcClient sender, uint requestHandle, string methodResponse)
         {
@@ -613,9 +761,19 @@ namespace ManiaNet.DedicatedServer.Controller
         public class Config
         {
             /// <summary>
+            /// Gets whether clients are allowed to disable the display of manialinks from certain plugins.
+            /// </summary>
+            public bool AllowManialinkHiding { get; private set; }
+
+            /// <summary>
             /// Gets the Login that the controller will use to authenticate with the xml rpc server.
             /// </summary>
             public string Login { get; private set; }
+
+            /// <summary>
+            /// Gets the number of milliseconds to wait before refreshing the Manialink that is displayed for clients.
+            /// </summary>
+            public int ManialinkRefreshInterval { get; private set; }
 
             /// <summary>
             /// Gets the Password that the controller will use to authenticate with the xml rpc server.
@@ -630,11 +788,15 @@ namespace ManiaNet.DedicatedServer.Controller
             /// <summary>
             /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.ServerController.Config"/> class with the given Login and Password.
             /// </summary>
+            /// <param name="allowManialinkHiding">Whether clients are allowed to disable the display of manialinks from certain plugins.</param>
+            /// <param name="manialinkRefreshInterval">The number of milliseconds to wait before refreshing the Manialink that is displayed for clients.</param>
             /// <param name="login">The Login that the controller authenticates with; SuperAdmin by default.</param>
             /// <param name="password">The Password that the controller authenticates with; SuperAdmin by default.</param>
             /// <param name="pluginFolders">The path(s) to the folders used to load plugins from; { "plugins" } by default.</param>
-            public Config(string login = "SuperAdmin", string password = "SuperAdmin", IEnumerable<string> pluginFolders = null)
+            public Config(bool allowManialinkHiding = true, int manialinkRefreshInterval = 1000, string login = "SuperAdmin", string password = "SuperAdmin", IEnumerable<string> pluginFolders = null)
             {
+                AllowManialinkHiding = allowManialinkHiding;
+                ManialinkRefreshInterval = manialinkRefreshInterval;
                 Login = login;
                 Password = password;
                 PluginFolders = pluginFolders ?? new string[] { "plugins" };
