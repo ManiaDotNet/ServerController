@@ -32,13 +32,24 @@ namespace ManiaNet.DedicatedServer.Controller
         private ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>> registeredCommands = new ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>>();
         private IXmlRpcClient xmlRpcClient;
 
+        /// <summary>
+        /// Gets the logins of the connected clients.
+        /// </summary>
         public ReadOnlyCollection<string> Clients
         {
             get { return new ReadOnlyCollection<string>(clients); }
         }
 
+        /// <summary>
+        /// Gets the configuration of the controller.
+        /// </summary>
         public Config Configuration { get; private set; }
 
+        /// <summary>
+        /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.Controller.ServerController"/> class with the given XmlRpc client and config.
+        /// </summary>
+        /// <param name="xmlRpcClient">The client used to communicate with the server.</param>
+        /// <param name="config">The configuration for the controller.</param>
         public ServerController(IXmlRpcClient xmlRpcClient, Config config)
         {
             this.xmlRpcClient = xmlRpcClient;
@@ -46,6 +57,48 @@ namespace ManiaNet.DedicatedServer.Controller
             this.xmlRpcClient.ServerCallback += xmlRpcClient_ServerCallback;
 
             Configuration = config;
+
+            if (Configuration.AllowManialinkHiding)
+            {
+                RegisterCommand("hide", playerChatCall =>
+                {
+                    string[] parts = playerChatCall.Text.Split(' ');
+
+                    if (parts.Length < 2)
+                        CallMethod(new ChatSendServerMessageToId("Usage: /hide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
+
+                    if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin))
+                        clientsDisabledPluginDisplays.Add(playerChatCall.ClientLogin, new List<string>());
+
+                    foreach (var pluginId in parts.Skip(1).Select(pluginId => pluginId.ToLower()))
+                    {
+                        if (!plugins.ContainsKey(pluginId))
+                            continue;
+
+                        if (!clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Contains(pluginId))
+                            clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Add(pluginId);
+                    }
+                });
+
+                RegisterCommand("unhide", playerChatCall =>
+                {
+                    string[] parts = playerChatCall.Text.Split(' ');
+
+                    if (parts.Length < 2)
+                        CallMethod(new ChatSendServerMessageToId("Usage: /unhide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
+
+                    if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin))
+                        return;
+
+                    foreach (var pluginId in parts.Skip(1).Select(pluginId => pluginId.ToLower()))
+                    {
+                        if (!plugins.ContainsKey(pluginId))
+                            continue;
+
+                        clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Remove(pluginId);
+                    }
+                });
+            }
         }
 
         /// <summary>
@@ -109,57 +162,13 @@ namespace ManiaNet.DedicatedServer.Controller
             if (!authenticate())
                 return false;
 
-            if (Configuration.AllowManialinkHiding)
-            {
-                if (!RegisterCommand("hide", playerChatCall =>
-                    {
-                        string[] parts = playerChatCall.Text.Split(' ');
-
-                        if (parts.Length < 2)
-                            CallMethod(new ChatSendServerMessageToId("Usage: /hide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
-
-                        if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin))
-                            clientsDisabledPluginDisplays.Add(playerChatCall.ClientLogin, new List<string>());
-
-                        foreach (var pluginId in parts.Skip(1).Select(pluginId => pluginId.ToLower()))
-                        {
-                            if (!plugins.ContainsKey(pluginId))
-                                continue;
-
-                            if (!clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Contains(pluginId))
-                                clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Add(pluginId);
-                        }
-                    }))
-                    return false;
-
-                if (!RegisterCommand("unhide", playerChatCall =>
-                    {
-                        string[] parts = playerChatCall.Text.Split(' ');
-
-                        if (parts.Length < 2)
-                            CallMethod(new ChatSendServerMessageToId("Usage: /unhide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
-
-                        if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin))
-                            return;
-
-                        foreach (var pluginId in parts.Skip(1).Select(pluginId => pluginId.ToLower()))
-                        {
-                            if (!plugins.ContainsKey(pluginId))
-                                continue;
-
-                            clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Remove(pluginId);
-                        }
-                    }))
-                    return false;
-            }
-
             if (!setUpClientsList())
                 return false;
 
-            startManialinkSendLoop();
-
             loadPlugins();
             startPlugins();
+
+            startManialinkSendLoop();
 
             return true;
         }
@@ -245,7 +254,7 @@ namespace ManiaNet.DedicatedServer.Controller
                         bool registeredCommand = false;
                         foreach (var cmdName in registeredCommands.Keys)
                         {
-                            if (playerChatCall.Text.ToLower().StartsWith("/" + cmdName))
+                            if ((playerChatCall.Text + " ").ToLower().StartsWith("/" + cmdName + " "))
                             {
                                 registeredCommands[cmdName](playerChatCall);
                                 registeredCommand = true;
@@ -437,11 +446,15 @@ namespace ManiaNet.DedicatedServer.Controller
 
             clients = getPlayerListCall.ReturnValue.Select(clientInfo => clientInfo.Value.Login).ToList();
 
+            PlayerConnect += (controller, playerConnectCall) => { Console.WriteLine(playerConnectCall.Login + " joined"); if (!clients.Contains(playerConnectCall.Login)) { clients.Add(playerConnectCall.Login); clientManialinksNeedRefresh = true; } };
+            PlayerDisconnect += (controller, playerDisconnectCall) => clients.Remove(playerDisconnectCall.Login);
+
             return true;
         }
 
         #region Manialink Display
 
+        private volatile bool clientManialinksNeedRefresh = false;
         private Dictionary<string, List<string>> clientsDisabledPluginDisplays = new Dictionary<string, List<string>>();
         private string manialinkTemplate = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("ManiaNet.DedicatedServer.Controller.ClientManialinkTemplate.csxml")).ReadToEnd();
 
@@ -453,6 +466,10 @@ namespace ManiaNet.DedicatedServer.Controller
 
             while (true)
             {
+                while (!clientManialinksNeedRefresh)
+                    Thread.Sleep(100);
+
+                clientManialinksNeedRefresh = false;
                 DateTime startTime = DateTime.Now;
 
                 foreach (var client in Clients)
@@ -484,6 +501,11 @@ namespace ManiaNet.DedicatedServer.Controller
                 if (delay > 0)
                     Thread.Sleep(delay);
             }
+        }
+
+        private void plugin_ClientManialinksChanged()
+        {
+            clientManialinksNeedRefresh = true;
         }
 
         private void startManialinkSendLoop()
@@ -577,8 +599,11 @@ namespace ManiaNet.DedicatedServer.Controller
             plugins = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes).Select(plugin =>
             {
                 Console.Write(ControllerPlugin.GetName(plugin.GetType()) + " ... ");
+                plugin.ClientManialinksChanged += plugin_ClientManialinksChanged;
+
                 bool success = plugin.Load(this);
                 Console.WriteLine(success ? "OK" : "Failed");
+
                 return new { Plugin = plugin, Success = success };
             })
             .Where(loadedPlugin => loadedPlugin.Success)

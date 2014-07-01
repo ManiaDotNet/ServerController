@@ -54,8 +54,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientManialinkTemplate.cs" />
-    <Compile Include="Controller.cs" />
+    <Compile Include="ServerController.cs" />
     <Compile Include="Database\Client.cs" />
     <Compile Include="Database\ManiaNetDb.cs" />
     <Compile Include="Database\Map.cs" />

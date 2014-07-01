@@ -42,7 +42,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
 
         /// <summary>
         /// The main method of the plugin.
-        /// Gets run in its own thread by the controller and should stop gracefully on a <see cref="System.Thread.ThreadAbortExceptions"/>.
+        /// Gets run in its own thread by the controller and should stop gracefully on a <see cref="System.Threading.ThreadAbortException"/>.
         /// </summary>
         public abstract void Run();
 
@@ -52,5 +52,19 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// </summary>
         /// <returns>Whether it unloaded successfully or not.</returns>
         public abstract bool Unload();
+
+        /// <summary>
+        /// Used by the deriving plugins to fire the ClientManialinksChanged event.
+        /// </summary>
+        protected void onClientManialinksChanged()
+        {
+            if (ClientManialinksChanged != null)
+                ClientManialinksChanged();
+        }
+
+        /// <summary>
+        /// Fires when a change was made to the ClientManialinks dictionary.
+        /// </summary>
+        public event Action ClientManialinksChanged;
     }
 }
