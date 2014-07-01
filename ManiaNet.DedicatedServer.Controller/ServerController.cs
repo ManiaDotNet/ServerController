@@ -173,7 +173,7 @@ namespace ManiaNet.DedicatedServer.Controller
         }
 
         /// <summary>
-        /// Sends a method call to the server and waits a maximum of the given timeout before returning whether the call returned (regardless of whether successful or not).
+        /// Sends a method call to the server and waits a maximum of the given timeout before returning whether the call returned (regardless of whether with a fault or not).
         /// </summary>
         /// <typeparam name="TReturn">The method call's returned XmlRpcType.</typeparam>
         /// <typeparam name="TReturnBase">The method call's type of the returned value.</typeparam>
@@ -184,20 +184,23 @@ namespace ManiaNet.DedicatedServer.Controller
         {
             uint methodHandle = xmlRpcClient.SendRequest(methodCall.GenerateCallXml().ToString());
 
-            if (!methodResponses.TryAdd(methodHandle, null))
-                return false;
-
-            string response = awaitResponse(methodHandle, timeout);
-
-            if (string.IsNullOrEmpty(response))
-                return false;
-
-            try
+            if (timeout > 0)
             {
-                if (!methodCall.ParseResponseXml(XDocument.Parse(response, LoadOptions.None).Root))
+                if (!methodResponses.TryAdd(methodHandle, null))
                     return false;
+
+                string response = awaitResponse(methodHandle, timeout);
+
+                if (string.IsNullOrEmpty(response))
+                    return false;
+
+                try
+                {
+                    if (!methodCall.ParseResponseXml(XDocument.Parse(response, LoadOptions.None).Root))
+                        return false;
+                }
+                catch { return false; }
             }
-            catch { return false; }
 
             return true;
         }
