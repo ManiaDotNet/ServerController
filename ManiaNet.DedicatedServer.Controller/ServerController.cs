@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -57,6 +58,22 @@ namespace ManiaNet.DedicatedServer.Controller
             this.xmlRpcClient.ServerCallback += xmlRpcClient_ServerCallback;
 
             Configuration = config;
+
+            RegisterCommand("plugins", playerChatCall =>
+            {
+                var response = new StringBuilder("Plugins: ");
+                foreach (var plugin in plugins)
+                {
+                    response.Append(ControllerPlugin.GetName(plugin.Value.GetType()));
+                    response.Append(" (");
+                    response.Append(plugin.Key);
+                    response.Append("), ");
+                }
+
+                response.Remove(response.Length - 2, 2);
+
+                CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
+            });
 
             if (Configuration.AllowManialinkHiding)
             {
@@ -129,27 +146,6 @@ namespace ManiaNet.DedicatedServer.Controller
             catch { return false; }
 
             return true;
-        }
-
-        /// <summary>
-        /// Gets whether the plugin with the given identifier is loaded or not.
-        /// </summary>
-        /// <param name="identifier">The identifier to check.</param>
-        /// <returns>Whether the plugin is loaded.</returns>
-        public bool IsPluginLoaded(string identifier)
-        {
-            return plugins.ContainsKey(identifier);
-        }
-
-        /// <summary>
-        /// Performs a stop-unload-load-start cycle on the plugins.
-        /// </summary>
-        public void ReloadPlugins()
-        {
-            stopPlugins();
-            unloadPlugins();
-            loadPlugins();
-            startPlugins();
         }
 
         /// <summary>
@@ -590,6 +586,27 @@ namespace ManiaNet.DedicatedServer.Controller
 
         #region Plugin Control
 
+        /// <summary>
+        /// Gets whether the plugin with the given identifier is loaded or not.
+        /// </summary>
+        /// <param name="identifier">The identifier to check.</param>
+        /// <returns>Whether the plugin is loaded.</returns>
+        public bool IsPluginLoaded(string identifier)
+        {
+            return plugins.ContainsKey(identifier);
+        }
+
+        /// <summary>
+        /// Performs a stop-unload-load-start cycle on the plugins.
+        /// </summary>
+        public void ReloadPlugins()
+        {
+            stopPlugins();
+            unloadPlugins();
+            loadPlugins();
+            startPlugins();
+        }
+
         private void loadPlugins()
         {
             Console.WriteLine("Loading Plugins...");
@@ -608,7 +625,7 @@ namespace ManiaNet.DedicatedServer.Controller
             })
             .Where(loadedPlugin => loadedPlugin.Success)
             .Select(loadedPlugin => loadedPlugin.Plugin)
-            .ToDictionary(plugin => ControllerPlugin.GetIdentifier(plugin.GetType()));
+            .ToDictionary(plugin => ControllerPlugin.GetIdentifier(plugin.GetType()).Replace(' ', '_').Replace('$', '_'));
 
             Console.WriteLine("Done");
         }
