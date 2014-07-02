@@ -1,4 +1,5 @@
-﻿using ManiaNet.DedicatedServer.Controller.Plugins;
+﻿using ManiaNet.DedicatedServer.Controller.Configuration;
+using ManiaNet.DedicatedServer.Controller.Plugins;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using RazorEngine;
 using SharpPlugins;
@@ -44,14 +45,14 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <summary>
         /// Gets the configuration of the controller.
         /// </summary>
-        public Config Configuration { get; private set; }
+        public ServerControllerConfig Configuration { get; private set; }
 
         /// <summary>
         /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.Controller.ServerController"/> class with the given XmlRpc client and config.
         /// </summary>
         /// <param name="xmlRpcClient">The client used to communicate with the server.</param>
         /// <param name="config">The configuration for the controller.</param>
-        public ServerController(IXmlRpcClient xmlRpcClient, Config config)
+        public ServerController(IXmlRpcClient xmlRpcClient, ServerControllerConfig config)
         {
             this.xmlRpcClient = xmlRpcClient;
             this.xmlRpcClient.MethodResponse += xmlRpcClient_MethodResponse;
@@ -853,53 +854,5 @@ namespace ManiaNet.DedicatedServer.Controller
         public event ServerCallbackEventHandler<ManiaPlanetVoteUpdated> VoteUpdated;
 
         #endregion Callback Events
-
-        /// <summary>
-        /// Represents a configuration for the server controller.
-        /// </summary>
-        public class Config
-        {
-            /// <summary>
-            /// Gets whether clients are allowed to disable the display of manialinks from certain plugins.
-            /// </summary>
-            public bool AllowManialinkHiding { get; private set; }
-
-            /// <summary>
-            /// Gets the Login that the controller will use to authenticate with the xml rpc server.
-            /// </summary>
-            public string Login { get; private set; }
-
-            /// <summary>
-            /// Gets the number of milliseconds to wait before refreshing the Manialink that is displayed for clients.
-            /// </summary>
-            public int ManialinkRefreshInterval { get; private set; }
-
-            /// <summary>
-            /// Gets the Password that the controller will use to authenticate with the xml rpc server.
-            /// </summary>
-            public string Password { get; private set; }
-
-            /// <summary>
-            /// Gets the path(s) to the folders used to load plugins from.
-            /// </summary>
-            public IEnumerable<string> PluginFolders { get; private set; }
-
-            /// <summary>
-            /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.ServerController.Config"/> class with the given Login and Password.
-            /// </summary>
-            /// <param name="allowManialinkHiding">Whether clients are allowed to disable the display of manialinks from certain plugins.</param>
-            /// <param name="manialinkRefreshInterval">The number of milliseconds to wait before refreshing the Manialink that is displayed for clients.</param>
-            /// <param name="login">The Login that the controller authenticates with; SuperAdmin by default.</param>
-            /// <param name="password">The Password that the controller authenticates with; SuperAdmin by default.</param>
-            /// <param name="pluginFolders">The path(s) to the folders used to load plugins from; { "plugins" } by default.</param>
-            public Config(bool allowManialinkHiding = true, int manialinkRefreshInterval = 1000, string login = "SuperAdmin", string password = "SuperAdmin", IEnumerable<string> pluginFolders = null)
-            {
-                AllowManialinkHiding = allowManialinkHiding;
-                ManialinkRefreshInterval = manialinkRefreshInterval;
-                Login = login;
-                Password = password;
-                PluginFolders = pluginFolders ?? new string[] { "plugins" };
-            }
-        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using ManiaNet.DedicatedServer;
 using ManiaNet.DedicatedServer.Controller;
+using ManiaNet.DedicatedServer.Controller.Configuration;
 using ManiaNet.DedicatedServer.XmlRpc;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using System;
@@ -17,7 +18,9 @@ namespace ManiaNet.ConsoleTesting
             xmlRpcConnection.MethodResponse += (client, handle, content) => Console.WriteLine("Handle " + handle + " returned:\r\n" + content);
             xmlRpcConnection.ServerCallback += (client, content) => Console.WriteLine("Callback:\r\n" + content);
 
-            ServerController controller = new ServerController(xmlRpcConnection, new ServerController.Config(password: "ManiaNet"));
+            var serverControllerConfigBuilder = ServerControllerConfig.Builder.Load();
+            serverControllerConfigBuilder.Save();
+            ServerController controller = new ServerController(xmlRpcConnection, serverControllerConfigBuilder.Config);
             controller.Start();
 
             Thread.Sleep(250);
@@ -27,7 +30,7 @@ namespace ManiaNet.ConsoleTesting
             Action<ManiaPlanetPlayerChat> testAction = playerChatCall => Console.WriteLine(playerChatCall.Text);
             Console.WriteLine("Trying to register test command: " + (controller.RegisterCommand("test", testAction) ? "Success" : "Failed"));
 
-            Thread.Sleep(30000);
+            Thread.Sleep(1000);
             Console.WriteLine("Trying to unregister test command: " + (controller.UnregisterCommand("test", testAction) ? "Success" : "Failed"));
 
             Console.ReadLine();

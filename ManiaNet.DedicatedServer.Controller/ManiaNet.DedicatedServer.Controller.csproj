@@ -34,6 +34,9 @@
     <DocumentationFile>bin\Release\ManiaNet.DedicatedServer.Controller.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NClone">
+      <HintPath>..\packages\NClone.1.1.0\lib\net45\NClone.dll</HintPath>
+    </Reference>
     <Reference Include="RazorEngine">
       <HintPath>..\packages\RazorEngine.3.4.1\lib\net45\RazorEngine.dll</HintPath>
     </Reference>
@@ -54,6 +57,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\Config.cs" />
+    <Compile Include="Configuration\ServerControllerConfig.cs" />
     <Compile Include="ServerController.cs" />
     <Compile Include="Database\Client.cs" />
     <Compile Include="Database\ManiaNetDb.cs" />
@@ -73,9 +78,14 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ClientManialinkTemplate.csxml" />
+    <None Include="Configuration\ServerControllerConfig.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Configuration\ServerControllerConfig.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
