@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Xml;
-using System.Xml.Serialization;
+using System.Xml.Linq;
 
 namespace ManiaNet.DedicatedServer.Controller.Configuration
 {
@@ -36,33 +35,31 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
             protected abstract TConfig config { get; }
 
             /// <summary>
+            /// Gets the name of the config file.
+            /// </summary>
+            protected abstract string configFileName { get; }
+
+            /// <summary>
+            /// Gets the path to the config file.
+            /// </summary>
+            protected string configFilePath
+            {
+                get { return Path.GetFullPath(Path.Combine("configs", configFileName)); }
+            }
+
+            /// <summary>
+            /// Gets the identifier for the dll resource containing the default config.
+            /// </summary>
+            protected abstract string configResource { get; }
+
+            /// <summary>
             /// Loads the content of a builder instance from the config on disk, or, if that fails, loads it from the Assembly resources and also saves it to disk.
             /// </summary>
-            /// <param name="configResource">The name of the resource in the assembly.</param>
-            /// <param name="configFilename">The name of the configuration file on disk.</param>
             /// <returns>The builder instance containing the loaded content.</returns>
-            protected static TConfigBuilder loadConfig(string configResource, string configFileName)
+            public bool Load()
             {
-                XmlReader configReader = null;
-                XmlSerializer configSerializer = new XmlSerializer(typeof(TConfigBuilder));
-                string configFilePath = Path.Combine("configs", configFileName);
-
-                if (File.Exists(configFilePath))
+                if (!File.Exists(configFilePath) || !parseXml(XDocument.Load(configFilePath).Root))
                 {
-                    try { configReader = XmlReader.Create(configFilePath); }
-                    catch { }
-                }
-
-                bool failed = false;
-                TConfigBuilder config;
-
-                try { config = (TConfigBuilder)configSerializer.Deserialize(configReader); }
-                catch { failed = true; }
-
-                if (failed)
-                {
-                    configReader = XmlReader.Create(Assembly.GetCallingAssembly().GetManifestResourceStream(configResource));
-
                     if (!Directory.Exists(Path.GetDirectoryName(configFilePath)))
                         Directory.CreateDirectory(Path.GetDirectoryName(configFilePath));
 
@@ -70,33 +67,39 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
                     catch { }
                 }
 
-                config = (TConfigBuilder)configSerializer.Deserialize(configReader);
-                configReader.Close();
-
-                return config;
+                return parseXml(XDocument.Load(configFilePath).Root);
             }
 
             /// <summary>
             /// Saves the current internal state of the builder to disk.
             /// </summary>
-            /// <param name="configFileName">The name of the configuration file on disk.</param>
             /// <returns>Whether it was successful or not.</returns>
-            protected bool saveConfig(string configFileName)
+            public bool Save()
             {
                 try
                 {
-                    XmlSerializer configSerializer = new XmlSerializer(typeof(TConfigBuilder));
-                    string configFilePath = Path.Combine("configs", configFileName);
-
                     if (!Directory.Exists(Path.GetDirectoryName(configFilePath)))
                         Directory.CreateDirectory(Path.GetDirectoryName(configFilePath));
 
-                    configSerializer.Serialize(XmlWriter.Create(configFilePath), this);
+                    File.WriteAllText(configFilePath, generateXml().ToString());
                 }
                 catch { return false; }
 
                 return true;
             }
+
+            /// <summary>
+            /// Generates a XElement storing the information in this builder.
+            /// </summary>
+            /// <returns>The XElement storing the information.</returns>
+            protected abstract XElement generateXml();
+
+            /// <summary>
+            /// Fills the properties of the builder with the information contained in the given XElement.
+            /// </summary>
+            /// <param name="xElement">The XElement containing the information.</param>
+            /// <returns>Whether it was successful or not.</returns>
+            protected abstract bool parseXml(XElement xElement);
         }
     }
 }

@@ -1,10 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<ServerControllerConfig>
-  <AllowManialinkHiding>true</AllowManialinkHiding>
-  <ManialinkRefreshInterval>1000</ManialinkRefreshInterval>
-  <Login>SuperAdmin</Login>
-  <Password>SuperAdmin</Password>
-  <PluginFolders>
-    <PluginFolder>plugins</PluginFolder>
-  </PluginFolders>
-</ServerControllerConfig>
+﻿<serverControllerConfig>
+  <allowManialinkHiding>true</allowManialinkHiding>
+  <manialinkRefreshInterval>1000</manialinkRefreshInterval>
+  <login>SuperAdmin</login>
+  <password>SuperAdmin</password>
+  <pluginFolders>
+    <pluginFolder>plugins</pluginFolder>
+  </pluginFolders>
+</serverControllerConfig>

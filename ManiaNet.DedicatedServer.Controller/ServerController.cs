@@ -174,6 +174,14 @@ namespace ManiaNet.DedicatedServer.Controller
         }
 
         /// <summary>
+        /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.Controller.ServerController"/> class with the given XmlRpc client and the config loaded from disk/default.
+        /// </summary>
+        /// <param name="xmlRpcClient">The client used to communicate with the server.</param>
+        public ServerController(IXmlRpcClient xmlRpcClient)
+            : this(xmlRpcClient, new ServerControllerConfig.Builder().Config)
+        { }
+
+        /// <summary>
         /// Sends a method call to the server and waits a maximum of the given timeout before returning whether the call returned (regardless of whether with a fault or not).
         /// </summary>
         /// <typeparam name="TReturn">The method call's returned XmlRpcType.</typeparam>

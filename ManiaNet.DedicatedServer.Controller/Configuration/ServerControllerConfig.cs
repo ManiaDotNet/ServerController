@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Serialization;
+using System.Xml.Linq;
 
 namespace ManiaNet.DedicatedServer.Controller.Configuration
 {
@@ -10,9 +10,6 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
     /// </summary>
     public sealed class ServerControllerConfig : Config
     {
-        private const string AssemblyResourceName = "ManiaNet.DedicatedServer.Controller.Configuration.ServerControllerConfig.xml";
-        private const string ConfigFileName = "ServerControllerConfig.xml";
-
         /// <summary>
         /// Gets whether clients are allowed to disable the display of manialinks from certain plugins.
         /// </summary>
@@ -44,7 +41,6 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
         /// <summary>
         /// For building an instance of the <see cref="ManiaNet.DedicatedServer.Controller.Configuration.ServerControllerConfig"/> class.
         /// </summary>
-        [XmlRoot("ServerControllerConfig")]
         public sealed class Builder : BuilderBase<ServerControllerConfig, Builder>
         {
             /// <summary>
@@ -91,7 +87,6 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
             /// <summary>
             /// Gets or sets the path(s) to the folders used to load plugins from.
             /// </summary>
-            [XmlArrayItem("PluginFolder")]
             public List<string> PluginFolders
             {
                 get { return config.PluginFolders.ToList(); }
@@ -107,45 +102,70 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
             }
 
             /// <summary>
-            /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.Controller.Configuration.ServerControllerConfig"/> class with the given configuration values.
+            /// Gets the name of the config file.
             /// </summary>
-            /// <param name="allowManialinkHiding">Whether clients are allowed to disable the display of manialinks from certain plugins.</param>
-            /// <param name="manialinkRefreshInterval">The number of milliseconds to wait before refreshing the Manialink that is displayed for clients.</param>
-            /// <param name="login">The Login that the controller authenticates with; SuperAdmin by default.</param>
-            /// <param name="password">The Password that the controller authenticates with; SuperAdmin by default.</param>
-            /// <param name="pluginFolders">The path(s) to the folders used to load plugins from; { "plugins" } by default.</param>
-            public Builder(bool allowManialinkHiding = true, ushort manialinkRefreshInterval = 1000, string login = "SuperAdmin", string password = "SuperAdmin", IEnumerable<string> pluginFolders = null)
+            protected override string configFileName
             {
-                AllowManialinkHiding = allowManialinkHiding;
-                ManialinkRefreshInterval = manialinkRefreshInterval;
-                Login = login;
-                Password = password;
-                PluginFolders = pluginFolders != null ? pluginFolders.ToList() : new List<string> { "plugins" };
+                get { return "ServerControllerConfig.xml"; }
             }
 
             /// <summary>
-            /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.Controller.Configuration.ServerControllerConfig"/> class with default content.
+            /// Gets the identifier for the dll resource containing the default config.
+            /// </summary>
+            protected override string configResource
+            {
+                get { return "ManiaNet.DedicatedServer.Controller.Configuration.ServerControllerConfig.xml"; }
+            }
+
+            /// <summary>
+            /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.Controller.Configuration.ServerControllerConfig"/> class with the content from disk or default.
             /// </summary>
             public Builder()
-                : this(allowManialinkHiding: true)
-            { }
-
-            /// <summary>
-            /// Loads the content of a builder instance from the config on disk, or, if that fails, loads it from the Assembly resources and also saves it to disk.
-            /// </summary>
-            /// <returns>The builder instance containing the loaded content.</returns>
-            public static Builder Load()
             {
-                return Builder.loadConfig(AssemblyResourceName, ConfigFileName);
+                Load();
             }
 
-            /// <summary>
-            /// Saves the current internal state of the builder to disk.
-            /// </summary>
-            /// <returns>Whether it was successful or not.</returns>
-            public bool Save()
+            protected override XElement generateXml()
             {
-                return saveConfig(ConfigFileName);
+                return new XElement("serverControllerConfig",
+                    new XElement("allowManialinkHiding", AllowManialinkHiding),
+                    new XElement("manialinkRefreshInterval", ManialinkRefreshInterval),
+                    new XElement("login", Login),
+                    new XElement("password", Password),
+                    new XElement("pluginFolders", PluginFolders.Select(pluginFolder => new XElement("pluginFolder", pluginFolder))));
+            }
+
+            protected override bool parseXml(XElement xElement)
+            {
+                if (!xElement.Name.LocalName.Equals("serverControllerConfig")
+                 || !xElement.HasElements || xElement.Elements().Count() != 5)
+                    return false;
+
+                XElement allowManialinkHidingElement = xElement.Element("allowManialinkHiding");
+                XElement manialinkRefreshIntervalElement = xElement.Element("manialinkRefreshInterval");
+                XElement loginElement = xElement.Element("login");
+                XElement passwordElement = xElement.Element("password");
+                XElement pluginFoldersElement = xElement.Element("pluginFolders");
+
+                if (allowManialinkHidingElement == null || manialinkRefreshIntervalElement == null
+                 || loginElement == null || passwordElement == null || pluginFoldersElement == null
+                 || !pluginFoldersElement.HasElements || pluginFoldersElement.Elements().Any(element => !element.Name.LocalName.Equals("pluginFolder")))
+                    return false;
+
+                bool allowManialinkHiding;
+                ushort manialinkRefreshInterval;
+
+                if (!bool.TryParse(allowManialinkHidingElement.Value, out allowManialinkHiding)
+                  || !ushort.TryParse(manialinkRefreshIntervalElement.Value, out manialinkRefreshInterval))
+                    return false;
+
+                AllowManialinkHiding = allowManialinkHiding;
+                ManialinkRefreshInterval = manialinkRefreshInterval;
+                Login = loginElement.Value;
+                Password = passwordElement.Value;
+                PluginFolders = pluginFoldersElement.Elements().Select(element => element.Value).Where(value => !string.IsNullOrWhiteSpace(value)).ToList();
+
+                return true;
             }
         }
     }
