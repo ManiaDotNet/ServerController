@@ -1,5 +1,4 @@
-﻿using ManiaNet.DedicatedServer;
-using ManiaNet.DedicatedServer.Controller;
+﻿using ManiaNet.DedicatedServer.Controller;
 using ManiaNet.DedicatedServer.XmlRpc;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using System;
@@ -19,10 +18,6 @@ namespace ManiaNet.ConsoleTesting
 
             ServerController controller = new ServerController(xmlRpcConnection);
             controller.Start();
-
-            Thread.Sleep(250);
-            xmlRpcConnection.SendRequest(new EnableCallbacks(true).ToString());
-            xmlRpcConnection.SendRequest(new SetApiVersion(ApiVersions.Api2013).ToString());
 
             Action<ManiaPlanetPlayerChat> testAction = playerChatCall => Console.WriteLine(playerChatCall.Text);
             Console.WriteLine("Trying to register test command: " + (controller.RegisterCommand("test", testAction) ? "Success" : "Failed"));

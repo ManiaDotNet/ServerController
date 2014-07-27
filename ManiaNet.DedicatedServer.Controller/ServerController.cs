@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -223,6 +224,9 @@ namespace ManiaNet.DedicatedServer.Controller
 
             if (!authenticate())
                 return false;
+
+            CallMethod(new EnableCallbacks(true), 2000);
+            CallMethod(new SetApiVersion(ApiVersions.Api2013), 2000);
 
             if (!setUpClientsList())
                 return false;
@@ -522,7 +526,7 @@ namespace ManiaNet.DedicatedServer.Controller
 
         private void manialinkSendLoop()
         {
-            var timeTaken = new TimeSpan(0);
+            var timer = new Stopwatch();
             var clientManialinkElements = new List<string>();
             List<string> clientDisabledPluginDisplays;
 
@@ -532,7 +536,7 @@ namespace ManiaNet.DedicatedServer.Controller
                     Thread.Sleep(100);
 
                 clientManialinksNeedRefresh = false;
-                DateTime startTime = DateTime.Now;
+                timer.Restart();
 
                 foreach (var client in Clients)
                 {
@@ -542,13 +546,13 @@ namespace ManiaNet.DedicatedServer.Controller
                     clientDisabledPluginDisplays = clientDisabledPluginDisplays ?? new List<string>();
 
                     // Iterate over all the plugins that aren't on the disabled-list of the client.
-                    foreach (var plugin in plugins.Where(plugin => !clientDisabledPluginDisplays.Contains(plugin.Key)))
+                    foreach (var plugin in plugins.Where(plugin => !clientDisabledPluginDisplays.Contains(plugin.Key)).Select(pluginKV => pluginKV.Value))
                     {
                         // See if there's a value specifically for the client, or otherwise one for all.
-                        if (plugin.Value.ClientManialinks.ContainsKey(client))
-                            clientManialinkElements.Add(plugin.Value.ClientManialinks[client]);
-                        else if (plugin.Value.ClientManialinks.ContainsKey("*"))
-                            clientManialinkElements.Add(plugin.Value.ClientManialinks["*"]);
+                        if (plugin.ClientManialinks.ContainsKey(client))
+                            clientManialinkElements.Add(plugin.ClientManialinks[client]);
+                        else if (plugin.ClientManialinks.ContainsKey("*"))
+                            clientManialinkElements.Add(plugin.ClientManialinks["*"]);
                     }
 
                     string clientManialink = WebUtility.HtmlDecode(Razor.Parse(manialinkTemplate, clientManialinkElements, client));
@@ -556,9 +560,9 @@ namespace ManiaNet.DedicatedServer.Controller
                     CallMethod(new SendDisplayManialinkPageToLogin(client, clientManialink, 0, false), 0);
                 }
 
-                timeTaken = DateTime.Now - startTime;
+                timer.Stop();
 
-                int delay = Configuration.ManialinkRefreshInterval - (int)timeTaken.TotalMilliseconds;
+                int delay = Configuration.ManialinkRefreshInterval - (int)timer.ElapsedMilliseconds;
 
                 if (delay > 0)
                     Thread.Sleep(delay);
