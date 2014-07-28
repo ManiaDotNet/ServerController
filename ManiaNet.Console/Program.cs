@@ -25,6 +25,8 @@ namespace ManiaNet.ConsoleTesting
             Thread.Sleep(1000);
             Console.WriteLine("Trying to unregister test command: " + (controller.UnregisterCommand("test", testAction) ? "Success" : "Failed"));
 
+            Console.WriteLine(controller.CallMethod(new GetVersion(), 2000));
+
             Console.ReadLine();
         }
     }
