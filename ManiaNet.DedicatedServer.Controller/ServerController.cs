@@ -27,13 +27,13 @@ namespace ManiaNet.DedicatedServer.Controller
     /// </summary>
     public class ServerController
     {
+        private readonly ConcurrentDictionary<uint, string> methodResponses = new ConcurrentDictionary<uint, string>();
+        private readonly ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>> registeredCommands = new ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>>();
+        private readonly IXmlRpcClient xmlRpcClient;
         private List<string> clients = new List<string>();
         private Thread manialinkSendLoopThread;
-        private ConcurrentDictionary<uint, string> methodResponses = new ConcurrentDictionary<uint, string>();
         private Dictionary<string, ControllerPlugin> plugins = new Dictionary<string, ControllerPlugin>();
         private List<Thread> pluginThreads;
-        private ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>> registeredCommands = new ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>>();
-        private IXmlRpcClient xmlRpcClient;
 
         /// <summary>
         /// Gets the logins of the connected clients.
@@ -62,115 +62,116 @@ namespace ManiaNet.DedicatedServer.Controller
             Configuration = config;
 
             RegisterCommand("plugins", playerChatCall =>
-            {
-                var response = new StringBuilder("Plugins: ");
-                foreach (var plugin in plugins)
-                {
-                    response.Append(ControllerPlugin.GetName(plugin.Value.GetType()));
-                    response.Append(" (");
-                    response.Append(plugin.Key);
-                    response.Append("), ");
-                }
+                                       {
+                                           var response = new StringBuilder("Plugins: ");
+                                           foreach (var plugin in plugins)
+                                           {
+                                               response.Append(PluginBase.GetName(plugin.Value.GetType()));
+                                               response.Append(" (");
+                                               response.Append(plugin.Key);
+                                               response.Append("), ");
+                                           }
 
-                response.Remove(response.Length - 2, 2);
+                                           response.Remove(response.Length - 2, 2);
 
-                CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
-            });
+                                           CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
+                                       });
 
             if (Configuration.AllowManialinkHiding)
             {
                 RegisterCommand("hide", playerChatCall =>
-                {
-                    string[] pluginIds = playerChatCall.Text.ToLower().Split(' ').Skip(1).ToArray();
+                                        {
+                                            string[] pluginIds = playerChatCall.Text.ToLower().Split(' ').Skip(1).ToArray();
 
-                    if (pluginIds.Length < 1)
-                        CallMethod(new ChatSendServerMessageToId("Usage: /hide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
+                                            if (pluginIds.Length < 1)
+                                                CallMethod(new ChatSendServerMessageToId("Usage: /hide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
 
-                    var hidePlugins = pluginIds.Where(pluginId => plugins.ContainsKey(pluginId)).ToArray();
-                    if (hidePlugins.Length > 0)
-                    {
-                        if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin))
-                            clientsDisabledPluginDisplays.Add(playerChatCall.ClientLogin, new List<string>());
+                                            var hidePlugins = pluginIds.Where(pluginId => plugins.ContainsKey(pluginId)).ToArray();
+                                            if (hidePlugins.Length > 0)
+                                            {
+                                                if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin))
+                                                    clientsDisabledPluginDisplays.Add(playerChatCall.ClientLogin, new List<string>());
 
-                        var response = new StringBuilder("Hid display of plugins: ");
-                        foreach (var hidePlugin in hidePlugins)
-                        {
-                            if (!clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Contains(hidePlugin))
-                                clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Add(hidePlugin);
+                                                var response = new StringBuilder("Hid display of plugins: ");
+                                                foreach (var hidePlugin in hidePlugins)
+                                                {
+                                                    if (!clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Contains(hidePlugin))
+                                                        clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Add(hidePlugin);
 
-                            response.Append(ControllerPlugin.GetName(plugins[hidePlugin].GetType()));
-                            response.Append(" (");
-                            response.Append(hidePlugin);
-                            response.Append("), ");
-                        }
+                                                    response.Append(PluginBase.GetName(plugins[hidePlugin].GetType()));
+                                                    response.Append(" (");
+                                                    response.Append(hidePlugin);
+                                                    response.Append("), ");
+                                                }
 
-                        clientManialinksNeedRefresh = true;
+                                                clientManialinksNeedRefresh = true;
 
-                        response.Remove(response.Length - 2, 2);
-                        CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
-                    }
+                                                response.Remove(response.Length - 2, 2);
+                                                CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
+                                            }
 
-                    var unknownPlugins = pluginIds.Where(pluginId => !plugins.ContainsKey(pluginId)).ToArray();
-                    if (unknownPlugins.Length > 0)
-                    {
-                        var response = new StringBuilder("Plugins not loaded: ");
-                        foreach (var unknownPlugin in unknownPlugins)
-                        {
-                            response.Append(unknownPlugin);
-                            response.Append(", ");
-                        }
+                                            var unknownPlugins = pluginIds.Where(pluginId => !plugins.ContainsKey(pluginId)).ToArray();
+                                            if (unknownPlugins.Length > 0)
+                                            {
+                                                var response = new StringBuilder("Plugins not loaded: ");
+                                                foreach (var unknownPlugin in unknownPlugins)
+                                                {
+                                                    response.Append(unknownPlugin);
+                                                    response.Append(", ");
+                                                }
 
-                        response.Remove(response.Length - 2, 2);
-                        CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
-                    }
-                });
+                                                response.Remove(response.Length - 2, 2);
+                                                CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
+                                            }
+                                        });
 
                 RegisterCommand("unhide", playerChatCall =>
-                {
-                    string[] pluginIds = playerChatCall.Text.ToLower().Split(' ').Skip(1).ToArray();
+                                          {
+                                              string[] pluginIds = playerChatCall.Text.ToLower().Split(' ').Skip(1).ToArray();
 
-                    if (pluginIds.Length < 1)
-                        CallMethod(new ChatSendServerMessageToId("Usage: /unhide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
+                                              if (pluginIds.Length < 1)
+                                                  CallMethod(new ChatSendServerMessageToId("Usage: /unhide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
 
-                    if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin) || !clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Any())
-                    {
-                        CallMethod(new ChatSendServerMessageToId("No plugins to unhide.", playerChatCall.ClientId), 0);
-                        return;
-                    }
+                                              if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin)
+                                                  || !clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Any())
+                                              {
+                                                  CallMethod(new ChatSendServerMessageToId("No plugins to unhide.", playerChatCall.ClientId), 0);
+                                                  return;
+                                              }
 
-                    var unhidePlugins = pluginIds.Where(pluginId => clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Remove(pluginId)).ToArray();
+                                              var unhidePlugins = pluginIds.Where(pluginId => clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Remove(pluginId)).ToArray();
 
-                    if (unhidePlugins.Length > 0)
-                    {
-                        var response = new StringBuilder("Unhid display of plugins: ");
-                        foreach (var unhidePlugin in unhidePlugins)
-                        {
-                            response.Append(ControllerPlugin.GetName(plugins[unhidePlugin].GetType()));
-                            response.Append(" (");
-                            response.Append(unhidePlugin);
-                            response.Append("), ");
-                        }
+                                              if (unhidePlugins.Length > 0)
+                                              {
+                                                  var response = new StringBuilder("Unhid display of plugins: ");
+                                                  foreach (var unhidePlugin in unhidePlugins)
+                                                  {
+                                                      response.Append(PluginBase.GetName(plugins[unhidePlugin].GetType()));
+                                                      response.Append(" (");
+                                                      response.Append(unhidePlugin);
+                                                      response.Append("), ");
+                                                  }
 
-                        clientManialinksNeedRefresh = true;
+                                                  clientManialinksNeedRefresh = true;
 
-                        response.Remove(response.Length - 2, 2);
-                        CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
-                    }
+                                                  response.Remove(response.Length - 2, 2);
+                                                  CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
+                                              }
 
-                    var unknownPlugins = pluginIds.Where(pluginId => !plugins.ContainsKey(pluginId)).ToArray();
-                    if (unknownPlugins.Length > 0)
-                    {
-                        var response = new StringBuilder("Plugins not loaded: ");
-                        foreach (var unknownPlugin in unknownPlugins)
-                        {
-                            response.Append(unknownPlugin);
-                            response.Append(", ");
-                        }
+                                              var unknownPlugins = pluginIds.Where(pluginId => !plugins.ContainsKey(pluginId)).ToArray();
+                                              if (unknownPlugins.Length > 0)
+                                              {
+                                                  var response = new StringBuilder("Plugins not loaded: ");
+                                                  foreach (var unknownPlugin in unknownPlugins)
+                                                  {
+                                                      response.Append(unknownPlugin);
+                                                      response.Append(", ");
+                                                  }
 
-                        response.Remove(response.Length - 2, 2);
-                        CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
-                    }
-                });
+                                                  response.Remove(response.Length - 2, 2);
+                                                  CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
+                                              }
+                                          });
             }
         }
 
@@ -209,7 +210,10 @@ namespace ManiaNet.DedicatedServer.Controller
                     if (!methodCall.ParseResponseXml(XDocument.Parse(response, LoadOptions.None).Root))
                         return false;
                 }
-                catch { return false; }
+                catch
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -256,7 +260,7 @@ namespace ManiaNet.DedicatedServer.Controller
             if (!CallMethod(methodCall, 2000))
                 return false;
 
-            return methodCall.HadFault ? false : methodCall.ReturnValue;
+            return !methodCall.HadFault && methodCall.ReturnValue;
         }
 
         /// <summary>
@@ -290,10 +294,17 @@ namespace ManiaNet.DedicatedServer.Controller
         private void callEvent(object serverCallback)
         {
             XElement methodCall = XDocument.Parse((string)serverCallback, LoadOptions.None).Root;
-            string methodName = methodCall.Element(XName.Get("methodName")).Value;
+
+            if (methodCall == null)
+                return;
+
+            var methodNameElement = methodCall.Element("methodName");
+
+            if (methodNameElement == null)
+                return;
 
             //Swith to the right method name and call the event.
-            switch (methodName)
+            switch (methodNameElement.Value)
             {
                 case "ManiaPlanet.PlayerConnect":
                     if (PlayerConnect != null)
@@ -317,21 +328,12 @@ namespace ManiaNet.DedicatedServer.Controller
                     var playerChatCall = new ManiaPlanetPlayerChat();
                     if (playerChatCall.ParseCallXml(methodCall))
                     {
-                        bool registeredCommand = false;
-                        foreach (var cmdName in registeredCommands.Keys)
-                        {
-                            if ((playerChatCall.Text + " ").ToLower().StartsWith("/" + cmdName + " "))
-                            {
-                                registeredCommands[cmdName](playerChatCall);
-                                registeredCommand = true;
-                                break;
-                            }
-                        }
+                        var registeredCommandName = registeredCommands.Keys.SingleOrDefault(cmdName => (playerChatCall.Text + " ").ToLower().StartsWith("/" + cmdName + " "));
 
-                        if (!registeredCommand && PlayerChat != null)
-                        {
+                        if (registeredCommandName != null)
+                            registeredCommands[registeredCommandName](playerChatCall);
+                        else if (PlayerChat != null)
                             PlayerChat(this, playerChatCall);
-                        }
                     }
                     break;
 
@@ -502,7 +504,7 @@ namespace ManiaNet.DedicatedServer.Controller
 
         private bool setUpClientsList()
         {
-            GetPlayerList getPlayerListCall = new GetPlayerList(100, 0);
+            var getPlayerListCall = new GetPlayerList(100, 0);
 
             if (!CallMethod(getPlayerListCall, 1000))
                 return false;
@@ -512,7 +514,15 @@ namespace ManiaNet.DedicatedServer.Controller
 
             clients = getPlayerListCall.ReturnValue.Select(clientInfo => clientInfo.Value.Login).ToList();
 
-            PlayerConnect += (controller, playerConnectCall) => { Console.WriteLine(playerConnectCall.Login + " joined"); if (!clients.Contains(playerConnectCall.Login)) { clients.Add(playerConnectCall.Login); clientManialinksNeedRefresh = true; } };
+            PlayerConnect += (controller, playerConnectCall) =>
+                             {
+                                 Console.WriteLine(playerConnectCall.Login + " joined");
+                                 if (!clients.Contains(playerConnectCall.Login))
+                                 {
+                                     clients.Add(playerConnectCall.Login);
+                                     clientManialinksNeedRefresh = true;
+                                 }
+                             };
             PlayerDisconnect += (controller, playerDisconnectCall) => clients.Remove(playerDisconnectCall.Login);
 
             return true;
@@ -520,15 +530,18 @@ namespace ManiaNet.DedicatedServer.Controller
 
         #region Manialink Display
 
-        private volatile bool clientManialinksNeedRefresh = false;
-        private Dictionary<string, List<string>> clientsDisabledPluginDisplays = new Dictionary<string, List<string>>();
-        private string manialinkTemplate = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("ManiaNet.DedicatedServer.Controller.ClientManialinkTemplate.csxml")).ReadToEnd();
+        private readonly Dictionary<string, List<string>> clientsDisabledPluginDisplays = new Dictionary<string, List<string>>();
+
+        private readonly string manialinkTemplate =
+            new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("ManiaNet.DedicatedServer.Controller.ClientManialinkTemplate.csxml")).ReadToEnd();
+
+        // Default is false
+        private volatile bool clientManialinksNeedRefresh;
 
         private void manialinkSendLoop()
         {
             var timer = new Stopwatch();
             var clientManialinkElements = new List<string>();
-            List<string> clientDisabledPluginDisplays;
 
             while (true)
             {
@@ -542,11 +555,12 @@ namespace ManiaNet.DedicatedServer.Controller
                 {
                     clientManialinkElements.Clear();
 
+                    List<string> clientDisabledPluginDisplays;
                     clientsDisabledPluginDisplays.TryGetValue(client, out clientDisabledPluginDisplays);
                     clientDisabledPluginDisplays = clientDisabledPluginDisplays ?? new List<string>();
 
                     // Iterate over all the plugins that aren't on the disabled-list of the client.
-                    foreach (var plugin in plugins.Where(plugin => !clientDisabledPluginDisplays.Contains(plugin.Key)).Select(pluginKV => pluginKV.Value))
+                    foreach (var plugin in plugins.Where(plugin => !clientDisabledPluginDisplays.Contains(plugin.Key)).Select(pluginKv => pluginKv.Value))
                     {
                         // See if there's a value specifically for the client, or otherwise one for all.
                         if (plugin.ClientManialinks.ContainsKey(client))
@@ -567,6 +581,7 @@ namespace ManiaNet.DedicatedServer.Controller
                 if (delay > 0)
                     Thread.Sleep(delay);
             }
+            // ReSharper disable once FunctionNeverReturns
         }
 
         private void plugin_ClientManialinksChanged()
@@ -576,9 +591,11 @@ namespace ManiaNet.DedicatedServer.Controller
 
         private void startManialinkSendLoop()
         {
-            manialinkSendLoopThread = new Thread(manialinkSendLoop);
-            manialinkSendLoopThread.Name = xmlRpcClient.Name + " Manialink Send Loop";
-            manialinkSendLoopThread.IsBackground = true;
+            manialinkSendLoopThread = new Thread(manialinkSendLoop)
+            {
+                Name = xmlRpcClient.Name + " Manialink Send Loop",
+                IsBackground = true
+            };
             manialinkSendLoopThread.Start();
         }
 
@@ -636,17 +653,8 @@ namespace ManiaNet.DedicatedServer.Controller
             if (!registeredCommands.ContainsKey(cmd))
                 return true;
 
-            bool isSameEntry = false;
-            foreach (var registeredCommand in registeredCommands)
-            {
-                if (registeredCommand.Key.Equals(cmd) && registeredCommand.Value.Equals(cmdAction))
-                {
-                    isSameEntry = true;
-                    break;
-                }
-            }
-
-            if (!isSameEntry)
+            // Check if value supposed to be removed is the same as the one associated with the cmdName
+            if (!registeredCommands.Any(registeredCommand => registeredCommand.Key.Equals(cmd) && registeredCommand.Value.Equals(cmdAction)))
                 return false;
 
             return registeredCommands.TryRemove(cmd, out cmdAction);
@@ -684,18 +692,18 @@ namespace ManiaNet.DedicatedServer.Controller
             var pluginTypes = PluginLoader.LoadPluginsFromFolders<ControllerPlugin>(Configuration.PluginFolders);
 
             plugins = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes).Select(plugin =>
-            {
-                Console.Write(ControllerPlugin.GetName(plugin.GetType()) + " ... ");
-                plugin.ClientManialinksChanged += plugin_ClientManialinksChanged;
+                                                                                            {
+                                                                                                Console.Write(PluginBase.GetName(plugin.GetType()) + " ... ");
+                                                                                                plugin.ClientManialinksChanged += plugin_ClientManialinksChanged;
 
-                bool success = plugin.Load(this);
-                Console.WriteLine(success ? "OK" : "Failed");
+                                                                                                bool success = plugin.Load(this);
+                                                                                                Console.WriteLine(success ? "OK" : "Failed");
 
-                return new { Plugin = plugin, Success = success };
-            })
-            .Where(loadedPlugin => loadedPlugin.Success)
-            .Select(loadedPlugin => loadedPlugin.Plugin)
-            .ToDictionary(plugin => ControllerPlugin.GetIdentifier(plugin.GetType()).Replace(' ', '_').Replace('$', '_').ToLower());
+                                                                                                return new { Plugin = plugin, Success = success };
+                                                                                            })
+                                  .Where(loadedPlugin => loadedPlugin.Success)
+                                  .Select(loadedPlugin => loadedPlugin.Plugin)
+                                  .ToDictionary(plugin => PluginBase.GetIdentifier(plugin.GetType()).Replace(' ', '_').Replace('$', '_').ToLower());
 
             Console.WriteLine("Done");
         }
@@ -703,13 +711,15 @@ namespace ManiaNet.DedicatedServer.Controller
         private void startPlugins()
         {
             pluginThreads = plugins.Values.Select(plugin =>
-                {
-                    Thread thread = new Thread(plugin.Run);
-                    thread.Name = xmlRpcClient.Name + " " + ControllerPlugin.GetName(plugin.GetType());
-                    thread.IsBackground = true;
-                    thread.Start();
-                    return thread;
-                }).ToList();
+                                                  {
+                                                      var thread = new Thread(plugin.Run)
+                                                      {
+                                                          Name = xmlRpcClient.Name + " " + PluginBase.GetName(plugin.GetType()),
+                                                          IsBackground = true
+                                                      };
+                                                      thread.Start();
+                                                      return thread;
+                                                  }).ToList();
         }
 
         private void stopPlugins()
@@ -727,7 +737,7 @@ namespace ManiaNet.DedicatedServer.Controller
 
             foreach (var plugin in plugins.Values)
             {
-                Console.Write(ControllerPlugin.GetName(plugin.GetType()) + " ... ");
+                Console.Write(PluginBase.GetName(plugin.GetType()) + " ... ");
                 Console.WriteLine(plugin.Unload() ? "OK" : "Failed");
             }
 
@@ -744,7 +754,7 @@ namespace ManiaNet.DedicatedServer.Controller
 
         private void xmlRpcClient_ServerCallback(IXmlRpcClient sender, string serverCallback)
         {
-            Task.Factory.StartNew(new Action<object>(callEvent), (object)serverCallback);
+            Task.Factory.StartNew(callEvent, serverCallback);
         }
 
         #region Callback Events
@@ -837,7 +847,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <typeparam name="TMethodCall">The type representing the called method.</typeparam>
         /// <param name="sender">The ServerController that fired the event.</param>
         /// <param name="methodCall">The method call information.</param>
-        public delegate void ServerCallbackEventHandler<TMethodCall>(ServerController sender, TMethodCall methodCall)
+        public delegate void ServerCallbackEventHandler<in TMethodCall>(ServerController sender, TMethodCall methodCall)
             where TMethodCall : XmlRpcMethodCall<XmlRpcBoolean, bool>;
 
         /// <summary>
