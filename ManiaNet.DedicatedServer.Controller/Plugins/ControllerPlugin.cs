@@ -9,7 +9,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
     /// <summary>
     /// Abstract base class for all ControllerPlugins.
     /// </summary>
-    public abstract partial class ControllerPlugin : PluginBase
+    public abstract class ControllerPlugin : PluginBase
     {
         /// <summary>
         /// Dictionary containing the manialink elements that the plugin wants to display.

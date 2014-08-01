@@ -1,73 +1,87 @@
 ﻿using ManiaNet.DedicatedServer.XmlRpc.Methods;
-using ManiaNet.DedicatedServer.XmlRpc.Structs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace ManiaNet.DedicatedServer.Controller.Plugins
 {
-    internal class LocalRecords
+    internal class LocalRecords : ControllerPlugin
     {
-        private ServerController controller;
         private Dictionary<string, List<int>> currentSplits;
         private RecordSet records;
 
-        public LocalRecords(ServerController controller)
+        /// <summary>
+        /// Gets called when the plugin is loaded.
+        /// Use this to add your methods to the controller's events and load your saved data.
+        /// </summary>
+        /// <param name="controller">The controller loading the plugin.</param>
+        /// <returns>Whether it loaded successfully or not.</returns>
+        public override bool Load(ServerController controller)
         {
-            this.controller = controller;
             controller.BeginMap += controller_BeginMap;
             controller.PlayerFinish += controller_PlayerFinish;
             controller.PlayerCheckpoint += controller_PlayerCheckpoint;
             controller.EndMap += controller_EndMap;
+
+            return true;
+        }
+
+        /// <summary>
+        /// The main method of the plugin.
+        /// Gets run in its own thread by the controller and should stop gracefully on a <see cref="System.Threading.ThreadAbortException"/>.
+        /// </summary>
+        public override void Run()
+        { }
+
+        /// <summary>
+        /// Gets called when the plugin is unloaded.
+        /// Use this to save your data.
+        /// </summary>
+        /// <returns>Whether it unloaded successfully or not.</returns>
+        public override bool Unload()
+        {
+            return true;
         }
 
         private void controller_BeginMap(ServerController sender, ManiaPlanetBeginMap methodCall)
         {
             currentSplits = new Dictionary<string, List<int>>();
-            MapInfoStruct map = methodCall.Map;
-            this.records = new RecordSet(map.UId);
+            records = new RecordSet(methodCall.Map.UId);
         }
 
         private void controller_EndMap(ServerController sender, ManiaPlanetEndMap methodCall)
         {
-            this.records.WriteRecords();
+            records.WriteRecords();
         }
 
         private void controller_PlayerCheckpoint(ServerController sender, TrackManiaPlayerCheckpoint methodCall)
         {
-            if (currentSplits.ContainsKey(methodCall.PlayerLogin))
-            {
+            if (!currentSplits.ContainsKey(methodCall.PlayerLogin))
                 currentSplits[methodCall.PlayerLogin] = new List<int>();
-            }
+
             currentSplits[methodCall.PlayerLogin].Add(methodCall.TimeOrScore);
         }
 
         private void controller_PlayerFinish(ServerController sender, TrackManiaPlayerFinish methodCall)
         {
-            if (methodCall.TimeOrScore > 0)
+            if (methodCall.TimeOrScore <= 0)
+                return;
+
+            var checkpoints = new List<int>();
+
+            if (currentSplits.ContainsKey(methodCall.PlayerLogin))
             {
-                List<int> checkpoints = new List<int>();
-                if (currentSplits.ContainsKey(methodCall.PlayerLogin))
-                {
-                    checkpoints = currentSplits[methodCall.PlayerLogin];
-                    currentSplits[methodCall.PlayerLogin] = new List<int>();
-                }
-                Record newRecord = new Record(methodCall.PlayerLogin, methodCall.TimeOrScore, checkpoints);
-                this.records.AddRecord(newRecord);
+                checkpoints = currentSplits[methodCall.PlayerLogin];
+                currentSplits[methodCall.PlayerLogin] = new List<int>();
             }
+
+            var newRecord = new Record(methodCall.PlayerLogin, methodCall.TimeOrScore, checkpoints);
+            records.AddRecord(newRecord);
         }
     }
 
     internal class Record
     {
-        public Record(string player, int time, List<int> checkpoints)
-        {
-            // check for valid amount of checkpoints?
-            this.Player = player;
-            this.Time = time;
-            this.Checkpoints = checkpoints;
-        }
-
         /// <summary>
         /// A list of the checkpoint times during the run.
         /// </summary>
@@ -87,6 +101,14 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// The time the player achieved.
         /// </summary>
         public int Time { get; private set; }
+
+        public Record(string player, int time, List<int> checkpoints)
+        {
+            // check for valid amount of checkpoints?
+            Player = player;
+            Time = time;
+            Checkpoints = checkpoints;
+        }
     }
 
     // TODO: Rename class?
@@ -95,18 +117,6 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
     /// </summary>
     internal class RecordDiff
     {
-        public RecordDiff(Record oldRecord, Record newRecord)
-        {
-            this.Player = newRecord.Player;
-            this.NewTime = newRecord.Time;
-            this.NewCheckpoints = newRecord.Checkpoints;
-            this.NewRank = newRecord.Rank;
-            this.OldTime = oldRecord.Time;
-            this.OldCheckpoints = oldRecord.Checkpoints;
-            this.OldRank = oldRecord.Rank;
-            this.TimeDifference = this.NewTime - this.OldTime;
-        }
-
         public List<int> NewCheckpoints { get; private set; }
 
         public int NewRank { get; private set; }
@@ -122,23 +132,34 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         public string Player { get; private set; }
 
         public int TimeDifference { get; private set; }
+
+        public RecordDiff(Record oldRecord, Record newRecord)
+        {
+            Player = newRecord.Player;
+            NewTime = newRecord.Time;
+            NewCheckpoints = newRecord.Checkpoints;
+            NewRank = newRecord.Rank;
+            OldTime = oldRecord.Time;
+            OldCheckpoints = oldRecord.Checkpoints;
+            OldRank = oldRecord.Rank;
+            TimeDifference = NewTime - OldTime;
+        }
     }
 
     internal class RecordSet
     {
+        private readonly Dictionary<string, Record> recordsByLogin = new Dictionary<string, Record>();
         private List<Record> records;
 
-        private Dictionary<string, Record> recordsByLogin;
+        public string Map { get; private set; }
 
         public RecordSet(string uid)
         {
-            this.Map = uid;
-            this.setupDB();
+            Map = uid;
+            setupDB();
             // TODO: read records from DB
-            string query = String.Format("SELECT * FROM `records` WHERE `map`='{0}'", this.Map);
+            string query = String.Format("SELECT * FROM `records` WHERE `map`='{0}'", Map);
         }
-
-        public string Map { get; private set; }
 
         /// <summary>
         /// Adds a record to the sets, updates all ranks.
@@ -148,20 +169,16 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         public bool AddRecord(Record record)
         {
             Record oldRecord = GetRecord(record.Player);
-            // check for valid amount of checkpoints?
+            // TODO: check for valid amount of checkpoints?
             if (oldRecord == null)
-            {
                 recordsByLogin.Add(record.Player, record);
-            }
             else if (oldRecord.Time > record.Time)
             {
                 recordsByLogin[record.Player] = record;
                 records.Remove(oldRecord);
             }
             else
-            {
                 return false;
-            }
             records.Add(record);
             List<Record> orderedRecords = records.OrderBy(o => o.Time).ToList();
             int rank = 1;
@@ -174,8 +191,8 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
                 recordsByLogin[r.Player].Rank = rank;
                 rank++;
             }
-            this.records = orderedRecords;
-            RecordDiff rd = new RecordDiff(oldRecord, record);
+            records = orderedRecords;
+            var rd = new RecordDiff(oldRecord, record);
             // raise NewLocalRecord event returning rd
             return true;
         }
@@ -198,11 +215,11 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         internal void WriteRecords()
         {
             string queryInsert = "INSERT OR IGNORE INTO `records` (`map`, `account`, `time`, `checkpoints`) VALUES ";
-            string queryDelete = "DELETE FROM `records` WHERE `map` = '" + this.Map + "' AND `account` IN (";
+            string queryDelete = "DELETE FROM `records` WHERE `map` = '" + Map + "' AND `account` IN (";
             int n = 0;
             foreach (Record r in records)
             {
-                queryInsert += String.Format("('{0}', '{1}', {2}, '{3}')", this.Map, r.Player, r.Time.ToString(), String.Join(",", r.Checkpoints));
+                queryInsert += String.Format("('{0}', '{1}', {2}, '{3}')", Map, r.Player, r.Time, String.Join(",", r.Checkpoints));
                 queryDelete += String.Format("'{0}'", r.Player);
                 if (n++ < records.Count)
                 {

@@ -46,7 +46,7 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
             /// <summary>
             /// The internal state of the builder.
             /// </summary>
-            private ServerControllerConfig internalConfig = new ServerControllerConfig();
+            private readonly ServerControllerConfig internalConfig = new ServerControllerConfig();
 
             /// <summary>
             /// Gets or sets whether clients are allowed to disable the display of manialinks from certain plugins.
@@ -138,7 +138,7 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
             protected override bool parseXml(XElement xElement)
             {
                 if (!xElement.Name.LocalName.Equals("serverControllerConfig")
-                 || !xElement.HasElements || xElement.Elements().Count() != 5)
+                    || !xElement.HasElements || xElement.Elements().Count() != 5)
                     return false;
 
                 XElement allowManialinkHidingElement = xElement.Element("allowManialinkHiding");
@@ -148,15 +148,15 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
                 XElement pluginFoldersElement = xElement.Element("pluginFolders");
 
                 if (allowManialinkHidingElement == null || manialinkRefreshIntervalElement == null
-                 || loginElement == null || passwordElement == null || pluginFoldersElement == null
-                 || !pluginFoldersElement.HasElements || pluginFoldersElement.Elements().Any(element => !element.Name.LocalName.Equals("pluginFolder")))
+                    || loginElement == null || passwordElement == null || pluginFoldersElement == null
+                    || !pluginFoldersElement.HasElements || pluginFoldersElement.Elements().Any(element => !element.Name.LocalName.Equals("pluginFolder")))
                     return false;
 
                 bool allowManialinkHiding;
                 ushort manialinkRefreshInterval;
 
                 if (!bool.TryParse(allowManialinkHidingElement.Value, out allowManialinkHiding)
-                  || !ushort.TryParse(manialinkRefreshIntervalElement.Value, out manialinkRefreshInterval))
+                    || !ushort.TryParse(manialinkRefreshIntervalElement.Value, out manialinkRefreshInterval))
                     return false;
 
                 AllowManialinkHiding = allowManialinkHiding;
