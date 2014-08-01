@@ -57,7 +57,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         private void controller_PlayerCheckpoint(ServerController sender, TrackManiaPlayerCheckpoint methodCall)
         {
             if (!currentSplits.ContainsKey(methodCall.PlayerLogin))
-                currentSplits[methodCall.PlayerLogin] = new List<int>();
+                currentSplits.Add(methodCall.PlayerLogin, new List<int>());
 
             currentSplits[methodCall.PlayerLogin].Add(methodCall.TimeOrScore);
         }
@@ -82,6 +82,14 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
 
     internal class Record
     {
+        public Record(string player, int time, List<int> checkpoints)
+        {
+            // check for valid amount of checkpoints?
+            Player = player;
+            Time = time;
+            Checkpoints = checkpoints;
+        }
+
         /// <summary>
         /// A list of the checkpoint times during the run.
         /// </summary>
@@ -101,14 +109,6 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// The time the player achieved.
         /// </summary>
         public int Time { get; private set; }
-
-        public Record(string player, int time, List<int> checkpoints)
-        {
-            // check for valid amount of checkpoints?
-            Player = player;
-            Time = time;
-            Checkpoints = checkpoints;
-        }
     }
 
     // TODO: Rename class?
@@ -117,6 +117,18 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
     /// </summary>
     internal class RecordDiff
     {
+        public RecordDiff(Record oldRecord, Record newRecord)
+        {
+            Player = newRecord.Player;
+            NewTime = newRecord.Time;
+            NewCheckpoints = newRecord.Checkpoints;
+            NewRank = newRecord.Rank;
+            OldTime = oldRecord.Time;
+            OldCheckpoints = oldRecord.Checkpoints;
+            OldRank = oldRecord.Rank;
+            TimeDifference = NewTime - OldTime;
+        }
+
         public List<int> NewCheckpoints { get; private set; }
 
         public int NewRank { get; private set; }
@@ -132,34 +144,22 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         public string Player { get; private set; }
 
         public int TimeDifference { get; private set; }
-
-        public RecordDiff(Record oldRecord, Record newRecord)
-        {
-            Player = newRecord.Player;
-            NewTime = newRecord.Time;
-            NewCheckpoints = newRecord.Checkpoints;
-            NewRank = newRecord.Rank;
-            OldTime = oldRecord.Time;
-            OldCheckpoints = oldRecord.Checkpoints;
-            OldRank = oldRecord.Rank;
-            TimeDifference = NewTime - OldTime;
-        }
     }
 
     internal class RecordSet
     {
-        private readonly Dictionary<string, Record> recordsByLogin = new Dictionary<string, Record>();
         private List<Record> records;
-
-        public string Map { get; private set; }
+        private Dictionary<string, Record> recordsByLogin = new Dictionary<string, Record>();
 
         public RecordSet(string uid)
         {
             Map = uid;
             setupDB();
             // TODO: read records from DB
-            string query = String.Format("SELECT * FROM `records` WHERE `map`='{0}'", Map);
+            string query = String.Format("SELECT * FROM `records` WHERE `map`='{0}' AND `valid`=1 ORDER BY `time` ASC", Map);
         }
+
+        public string Map { get; private set; }
 
         /// <summary>
         /// Adds a record to the sets, updates all ranks.
@@ -180,18 +180,10 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
             else
                 return false;
             records.Add(record);
-            List<Record> orderedRecords = records.OrderBy(o => o.Time).ToList();
-            int rank = 1;
-            foreach (Record r in orderedRecords)
-            {
-                r.Rank = rank;
-                // TODO: does this already change the acutal objects in the list?
-                // line below if not
-                // records[rank - 1] = r;
-                recordsByLogin[r.Player].Rank = rank;
-                rank++;
-            }
-            records = orderedRecords;
+            records = records.OrderBy(o => o.Time).ToList();
+            for (int rank = 0; rank < records.Count; rank++)
+                records[rank].Rank = rank + 1;
+            recordsByLogin = records.ToDictionary(r => r.Player);
             var rd = new RecordDiff(oldRecord, record);
             // raise NewLocalRecord event returning rd
             return true;
@@ -214,32 +206,36 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// </summary>
         internal void WriteRecords()
         {
+            string queryInvalidate = "UPDATE `records` SET `valid`=0 WHERE `map` = '" + Map + "' AND `account` IN (";
             string queryInsert = "INSERT OR IGNORE INTO `records` (`map`, `account`, `time`, `checkpoints`) VALUES ";
-            string queryDelete = "DELETE FROM `records` WHERE `map` = '" + Map + "' AND `account` IN (";
             int n = 0;
             foreach (Record r in records)
             {
                 queryInsert += String.Format("('{0}', '{1}', {2}, '{3}')", Map, r.Player, r.Time, String.Join(",", r.Checkpoints));
-                queryDelete += String.Format("'{0}'", r.Player);
+                queryInvalidate += String.Format("'{0}'", r.Player);
                 if (n++ < records.Count)
                 {
                     queryInsert += ", ";
-                    queryDelete += ", ";
+                    queryInvalidate += ", ";
                 }
             }
-            queryDelete += ")";
-            // TODO: execute queries
+            queryInvalidate += ")";
+            // TODO: execute queries, queryInvalidate first
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Creates the databae schema if it does not exist
+        /// </summary>
         private void setupDB()
         {
             string query = @"CREATE TABLE IF NOT EXISTS `records` (
+            `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             `map` VARCHAR(64) NOT NULL,
             `account` VARCHAR(255) NOT NULL,
             `time` INTEGER(10) NOT NULL,
             `checkpoints` TEXT NOT NULL,
-            PRIMARY KEY (`map`, `account`)
+            `valid` INTEGER(1) DEFAULT 1
             )";
         }
     }
