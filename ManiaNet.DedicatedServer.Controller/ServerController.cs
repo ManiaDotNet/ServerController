@@ -6,7 +6,6 @@ using SharpPlugins;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -38,9 +37,15 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <summary>
         /// Gets the logins of the connected clients.
         /// </summary>
-        public ReadOnlyCollection<string> Clients
+        public IEnumerable<string> Clients
         {
-            get { return new ReadOnlyCollection<string>(clients); }
+            get
+            {
+                // ReSharper disable once LoopCanBeConvertedToQuery
+                // If clients is returned as it is, user can modify the list by casting back to List<string>
+                foreach (var client in clients)
+                    yield return client;
+            }
         }
 
         /// <summary>
@@ -81,7 +86,7 @@ namespace ManiaNet.DedicatedServer.Controller
             {
                 RegisterCommand("hide", playerChatCall =>
                                         {
-                                            string[] pluginIds = playerChatCall.Text.ToLower().Split(' ').Skip(1).ToArray();
+                                            var pluginIds = playerChatCall.Text.ToLower().Split(' ').Skip(1).ToArray();
 
                                             if (pluginIds.Length < 1)
                                                 CallMethod(new ChatSendServerMessageToId("Usage: /hide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
@@ -653,6 +658,7 @@ namespace ManiaNet.DedicatedServer.Controller
             if (!registeredCommands.ContainsKey(cmd))
                 return true;
 
+            // ReSharper disable once AccessToModifiedClosure
             // Check if value supposed to be removed is the same as the one associated with the cmdName
             if (!registeredCommands.Any(registeredCommand => registeredCommand.Key.Equals(cmd) && registeredCommand.Value.Equals(cmdAction)))
                 return false;
