@@ -7,8 +7,8 @@
     <ProjectGuid>{C2253BEF-10A4-426A-B4CE-AC7F11EF7AFC}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ManiaNet.Console</RootNamespace>
-    <AssemblyName>ManiaNet.Console</AssemblyName>
+    <RootNamespace>ManiaNet.ServerController.Console</RootNamespace>
+    <AssemblyName>ManiaNet.ServerController.Console</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -44,6 +44,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\XmlRpc.1.1\lib\XmlRpc.dll</HintPath>
     </Reference>
+    <Reference Include="ManiaNet.DedicatedServer, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\ManiaNet.DedicatedServer.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -53,10 +57,6 @@
     <ProjectReference Include="..\ManiaNet.DedicatedServer.Controller\ManiaNet.DedicatedServer.Controller.csproj">
       <Project>{9f4fdca6-1cc3-4e85-864d-20d631461776}</Project>
       <Name>ManiaNet.DedicatedServer.Controller</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ManiaNet.DedicatedServer\ManiaNet.DedicatedServer.csproj">
-      <Project>{086bb4ea-e79a-482e-84fc-4ea256ecf4b4}</Project>
-      <Name>ManiaNet.DedicatedServer</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
