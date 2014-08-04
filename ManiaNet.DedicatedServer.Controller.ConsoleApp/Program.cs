@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace ManiaNet.ConsoleTesting
+namespace ManiaNet.DedicatedServer.Controller.ConsoleApp
 {
     internal class Program
     {
