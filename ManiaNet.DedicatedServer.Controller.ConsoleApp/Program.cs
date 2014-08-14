@@ -1,5 +1,4 @@
-﻿using ManiaNet.DedicatedServer.Controller;
-using ManiaNet.DedicatedServer.XmlRpc;
+﻿using ManiaNet.DedicatedServer.XmlRpc;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using System;
 using System.Collections.Generic;
@@ -12,11 +11,11 @@ namespace ManiaNet.DedicatedServer.Controller.ConsoleApp
     {
         private static void Main(string[] args)
         {
-            XmlRpcClient xmlRpcConnection = new XmlRpcClient(new XmlRpcClient.Config(port: 5001));
+            var xmlRpcConnection = new XmlRpcClient(new XmlRpcClient.Config(port: 5001));
             xmlRpcConnection.MethodResponse += (client, handle, content) => Console.WriteLine("Handle " + handle + " returned:\r\n" + content);
             xmlRpcConnection.ServerCallback += (client, content) => Console.WriteLine("Callback:\r\n" + content);
 
-            ServerController controller = new ServerController(xmlRpcConnection);
+            var controller = new ServerController(xmlRpcConnection);
             controller.Start();
 
             Action<ManiaPlanetPlayerChat> testAction = playerChatCall => Console.WriteLine(playerChatCall.Text);

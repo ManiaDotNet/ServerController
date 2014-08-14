@@ -1,5 +1,6 @@
 ﻿<serverControllerConfig>
   <allowManialinkHiding>true</allowManialinkHiding>
+  <databasePath>ManiaNet.db3</databasePath>
   <manialinkRefreshInterval>1000</manialinkRefreshInterval>
   <login>SuperAdmin</login>
   <password>SuperAdmin</password>

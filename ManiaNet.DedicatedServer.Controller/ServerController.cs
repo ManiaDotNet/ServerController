@@ -3,6 +3,7 @@ using ManiaNet.DedicatedServer.Controller.Plugins;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using RazorEngine;
 using SharpPlugins;
+using SQLite;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -24,12 +25,12 @@ namespace ManiaNet.DedicatedServer.Controller
     /// <summary>
     /// Represents the main component of the controller, that handles all the incomming callbacks, command registrations of plugins, etc.
     /// </summary>
-    public class ServerController
+    public class ServerController : IDisposable
     {
+        private readonly List<string> clients = new List<string>();
         private readonly ConcurrentDictionary<uint, string> methodResponses = new ConcurrentDictionary<uint, string>();
         private readonly ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>> registeredCommands = new ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>>();
         private readonly IXmlRpcClient xmlRpcClient;
-        private List<string> clients = new List<string>();
         private Thread manialinkSendLoopThread;
         private Dictionary<string, ControllerPlugin> plugins = new Dictionary<string, ControllerPlugin>();
         private List<Thread> pluginThreads;
@@ -54,6 +55,11 @@ namespace ManiaNet.DedicatedServer.Controller
         public ServerControllerConfig Configuration { get; private set; }
 
         /// <summary>
+        /// Gets the connection to the SQLite database.
+        /// </summary>
+        public SQLiteConnection Database { get; private set; }
+
+        /// <summary>
         /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.Controller.ServerController"/> class with the given XmlRpc client and config.
         /// </summary>
         /// <param name="xmlRpcClient">The client used to communicate with the server.</param>
@@ -64,120 +70,17 @@ namespace ManiaNet.DedicatedServer.Controller
             this.xmlRpcClient.MethodResponse += xmlRpcClient_MethodResponse;
             this.xmlRpcClient.ServerCallback += xmlRpcClient_ServerCallback;
 
+            Database = new SQLiteConnection(config.DatabasePath, true);
+
             Configuration = config;
 
-            RegisterCommand("plugins", playerChatCall =>
-                                       {
-                                           var response = new StringBuilder("Plugins: ");
-                                           foreach (var plugin in plugins)
-                                           {
-                                               response.Append(PluginBase.GetName(plugin.Value.GetType()));
-                                               response.Append(" (");
-                                               response.Append(plugin.Key);
-                                               response.Append("), ");
-                                           }
+            RegisterCommand("plugins", listPlugins);
 
-                                           response.Remove(response.Length - 2, 2);
+            if (!Configuration.AllowManialinkHiding)
+                return;
 
-                                           CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
-                                       });
-
-            if (Configuration.AllowManialinkHiding)
-            {
-                RegisterCommand("hide", playerChatCall =>
-                                        {
-                                            var pluginIds = playerChatCall.Text.ToLower().Split(' ').Skip(1).ToArray();
-
-                                            if (pluginIds.Length < 1)
-                                                CallMethod(new ChatSendServerMessageToId("Usage: /hide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
-
-                                            var hidePlugins = pluginIds.Where(pluginId => plugins.ContainsKey(pluginId)).ToArray();
-                                            if (hidePlugins.Length > 0)
-                                            {
-                                                if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin))
-                                                    clientsDisabledPluginDisplays.Add(playerChatCall.ClientLogin, new List<string>());
-
-                                                var response = new StringBuilder("Hid display of plugins: ");
-                                                foreach (var hidePlugin in hidePlugins)
-                                                {
-                                                    if (!clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Contains(hidePlugin))
-                                                        clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Add(hidePlugin);
-
-                                                    response.Append(PluginBase.GetName(plugins[hidePlugin].GetType()));
-                                                    response.Append(" (");
-                                                    response.Append(hidePlugin);
-                                                    response.Append("), ");
-                                                }
-
-                                                clientManialinksNeedRefresh = true;
-
-                                                response.Remove(response.Length - 2, 2);
-                                                CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
-                                            }
-
-                                            var unknownPlugins = pluginIds.Where(pluginId => !plugins.ContainsKey(pluginId)).ToArray();
-                                            if (unknownPlugins.Length > 0)
-                                            {
-                                                var response = new StringBuilder("Plugins not loaded: ");
-                                                foreach (var unknownPlugin in unknownPlugins)
-                                                {
-                                                    response.Append(unknownPlugin);
-                                                    response.Append(", ");
-                                                }
-
-                                                response.Remove(response.Length - 2, 2);
-                                                CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
-                                            }
-                                        });
-
-                RegisterCommand("unhide", playerChatCall =>
-                                          {
-                                              string[] pluginIds = playerChatCall.Text.ToLower().Split(' ').Skip(1).ToArray();
-
-                                              if (pluginIds.Length < 1)
-                                                  CallMethod(new ChatSendServerMessageToId("Usage: /unhide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
-
-                                              if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin)
-                                                  || !clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Any())
-                                              {
-                                                  CallMethod(new ChatSendServerMessageToId("No plugins to unhide.", playerChatCall.ClientId), 0);
-                                                  return;
-                                              }
-
-                                              var unhidePlugins = pluginIds.Where(pluginId => clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Remove(pluginId)).ToArray();
-
-                                              if (unhidePlugins.Length > 0)
-                                              {
-                                                  var response = new StringBuilder("Unhid display of plugins: ");
-                                                  foreach (var unhidePlugin in unhidePlugins)
-                                                  {
-                                                      response.Append(PluginBase.GetName(plugins[unhidePlugin].GetType()));
-                                                      response.Append(" (");
-                                                      response.Append(unhidePlugin);
-                                                      response.Append("), ");
-                                                  }
-
-                                                  clientManialinksNeedRefresh = true;
-
-                                                  response.Remove(response.Length - 2, 2);
-                                                  CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
-                                              }
-
-                                              var unknownPlugins = pluginIds.Where(pluginId => !plugins.ContainsKey(pluginId)).ToArray();
-                                              if (unknownPlugins.Length > 0)
-                                              {
-                                                  var response = new StringBuilder("Plugins not loaded: ");
-                                                  foreach (var unknownPlugin in unknownPlugins)
-                                                  {
-                                                      response.Append(unknownPlugin);
-                                                      response.Append(", ");
-                                                  }
-
-                                                  response.Remove(response.Length - 2, 2);
-                                                  CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
-                                              }
-                                          });
-            }
+            RegisterCommand("hide", hidePlugins);
+            RegisterCommand("unhide", unhidePlugins);
         }
 
         /// <summary>
@@ -194,34 +97,43 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <typeparam name="TReturn">The method call's returned XmlRpcType.</typeparam>
         /// <typeparam name="TReturnBase">The method call's type of the returned value.</typeparam>
         /// <param name="methodCall">The method call to be executed.</param>
-        /// <param name="timeout">The maximum time in milliseconds to wait for a response.</param>
+        /// <param name="timeout">The maximum time in milliseconds to wait for a response.
+        /// If the timeout is less than or equal to zero, the function will return true, as it won't wait for the response.</param>
         /// <returns>Whether the call was returned (regardless of whether successful or not).</returns>
+        /// <remarks>If the timeout is less than or equal to zero, the function will return true, as it won't wait for the response.</remarks>
         public bool CallMethod<TReturn, TReturnBase>(XmlRpcMethodCall<TReturn, TReturnBase> methodCall, int timeout) where TReturn : XmlRpcType<TReturnBase>, new()
         {
-            uint methodHandle = xmlRpcClient.SendRequest(methodCall.GenerateCallXml().ToString());
+            var methodHandle = xmlRpcClient.SendRequest(methodCall.GenerateCallXml().ToString());
 
-            if (timeout > 0)
+            if (timeout <= 0)
+                return true;
+
+            if (!methodResponses.TryAdd(methodHandle, null))
+                return false;
+
+            var response = awaitResponse(methodHandle, timeout);
+
+            if (string.IsNullOrEmpty(response))
+                return false;
+
+            try
             {
-                if (!methodResponses.TryAdd(methodHandle, null))
+                if (!methodCall.ParseResponseXml(XDocument.Parse(response, LoadOptions.None).Root))
                     return false;
-
-                string response = awaitResponse(methodHandle, timeout);
-
-                if (string.IsNullOrEmpty(response))
-                    return false;
-
-                try
-                {
-                    if (!methodCall.ParseResponseXml(XDocument.Parse(response, LoadOptions.None).Root))
-                        return false;
-                }
-                catch
-                {
-                    return false;
-                }
+            }
+            catch
+            {
+                return false;
             }
 
             return true;
+        }
+
+        public void Dispose()
+        {
+            Database.Dispose();
+            if (xmlRpcClient is IDisposable)
+                ((IDisposable)xmlRpcClient).Dispose();
         }
 
         /// <summary>
@@ -276,7 +188,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <returns>The xml formatted method response or an empty string if it took more than timeout ms.</returns>
         private string awaitResponse(uint handle, int timeout)
         {
-            int timeSpent = 0;
+            var timeSpent = 0;
             if (!methodResponses.ContainsKey(handle))
                 return string.Empty;
 
@@ -286,19 +198,16 @@ namespace ManiaNet.DedicatedServer.Controller
                 timeSpent += 10;
             }
 
-            if (methodResponses[handle] != null)
-            {
-                string response;
-                if (methodResponses.TryRemove(handle, out response))
-                    return response;
-            }
+            if (methodResponses[handle] == null)
+                return string.Empty;
 
-            return string.Empty;
+            string response;
+            return methodResponses.TryRemove(handle, out response) ? response : string.Empty;
         }
 
         private void callEvent(object serverCallback)
         {
-            XElement methodCall = XDocument.Parse((string)serverCallback, LoadOptions.None).Root;
+            var methodCall = XDocument.Parse((string)serverCallback, LoadOptions.None).Root;
 
             if (methodCall == null)
                 return;
@@ -507,6 +416,68 @@ namespace ManiaNet.DedicatedServer.Controller
             }
         }
 
+        private void hidePlugins(ManiaPlanetPlayerChat playerChatCall)
+        {
+            var pluginIds = playerChatCall.Text.ToLower().Split(' ').Skip(1).ToArray();
+
+            if (pluginIds.Length < 1)
+                CallMethod(new ChatSendServerMessageToId("Usage: /hide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
+
+            var hidePlugins = pluginIds.Where(pluginId => plugins.ContainsKey(pluginId)).ToArray();
+            if (hidePlugins.Length > 0)
+            {
+                if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin))
+                    clientsDisabledPluginDisplays.Add(playerChatCall.ClientLogin, new List<string>());
+
+                var response = new StringBuilder("Hid display of plugins: ");
+                foreach (var hidePlugin in hidePlugins)
+                {
+                    if (!clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Contains(hidePlugin))
+                        clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Add(hidePlugin);
+
+                    response.Append(PluginBase.GetName(plugins[hidePlugin].GetType()));
+                    response.Append(" (");
+                    response.Append(hidePlugin);
+                    response.Append("), ");
+                }
+
+                clientManialinksNeedRefresh = true;
+
+                response.Remove(response.Length - 2, 2);
+                CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
+            }
+
+            var unknownPlugins = pluginIds.Where(pluginId => !plugins.ContainsKey(pluginId)).ToArray();
+            if (unknownPlugins.Length > 0)
+            {
+                var response = new StringBuilder("Plugins not loaded: ");
+                foreach (var unknownPlugin in unknownPlugins)
+                {
+                    response.Append(unknownPlugin);
+                    response.Append(", ");
+                }
+
+                response.Remove(response.Length - 2, 2);
+                CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
+            }
+        }
+
+        private void listPlugins(ManiaPlanetPlayerChat playerChatCall)
+        {
+            var response = new StringBuilder("Plugins: ");
+            foreach (var plugin in plugins)
+            {
+                response.Append(PluginBase.GetName(plugin.Value.GetType()));
+                response.Append(" (");
+                response.Append(plugin.Key);
+                response.Append("), ");
+            }
+
+            response.Remove(response.Length - 2, 2);
+
+            CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
+        }
+
         private bool setUpClientsList()
         {
             var getPlayerListCall = new GetPlayerList(100, 0);
@@ -517,7 +488,8 @@ namespace ManiaNet.DedicatedServer.Controller
             if (getPlayerListCall.HadFault)
                 return false;
 
-            clients = getPlayerListCall.ReturnValue.Select(clientInfo => clientInfo.Value.Login).ToList();
+            clients.Clear();
+            clients.AddRange(getPlayerListCall.ReturnValue.Select(clientInfo => clientInfo.Value.Login));
 
             PlayerConnect += (controller, playerConnectCall) =>
                              {
@@ -531,6 +503,54 @@ namespace ManiaNet.DedicatedServer.Controller
             PlayerDisconnect += (controller, playerDisconnectCall) => clients.Remove(playerDisconnectCall.Login);
 
             return true;
+        }
+
+        private void unhidePlugins(ManiaPlanetPlayerChat playerChatCall)
+        {
+            string[] pluginIds = playerChatCall.Text.ToLower().Split(' ').Skip(1).ToArray();
+
+            if (pluginIds.Length < 1)
+                CallMethod(new ChatSendServerMessageToId("Usage: /unhide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
+
+            if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin)
+                || !clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Any())
+            {
+                CallMethod(new ChatSendServerMessageToId("No plugins to unhide.", playerChatCall.ClientId), 0);
+                return;
+            }
+
+            var unhidePlugins = pluginIds.Where(pluginId => clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Remove(pluginId)).ToArray();
+
+            if (unhidePlugins.Length > 0)
+            {
+                var response = new StringBuilder("Unhid display of plugins: ");
+                foreach (var unhidePlugin in unhidePlugins)
+                {
+                    response.Append(PluginBase.GetName(plugins[unhidePlugin].GetType()));
+                    response.Append(" (");
+                    response.Append(unhidePlugin);
+                    response.Append("), ");
+                }
+
+                clientManialinksNeedRefresh = true;
+
+                response.Remove(response.Length - 2, 2);
+                CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
+            }
+
+            var unknownPlugins = pluginIds.Where(pluginId => !plugins.ContainsKey(pluginId)).ToArray();
+            if (unknownPlugins.Length > 0)
+            {
+                var response = new StringBuilder("Plugins not loaded: ");
+                foreach (var unknownPlugin in unknownPlugins)
+                {
+                    response.Append(unknownPlugin);
+                    response.Append(", ");
+                }
+
+                response.Remove(response.Length - 2, 2);
+                CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
+            }
         }
 
         #region Manialink Display
@@ -699,10 +719,10 @@ namespace ManiaNet.DedicatedServer.Controller
 
             plugins = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes).Select(plugin =>
                                                                                             {
-                                                                                                Console.Write(PluginBase.GetName(plugin.GetType()) + " ... ");
+                                                                                                Console.WriteLine(PluginBase.GetName(plugin.GetType()) + " ...");
                                                                                                 plugin.ClientManialinksChanged += plugin_ClientManialinksChanged;
 
-                                                                                                bool success = plugin.Load(this);
+                                                                                                var success = plugin.Load(this);
                                                                                                 Console.WriteLine(success ? "OK" : "Failed");
 
                                                                                                 return new { Plugin = plugin, Success = success };
@@ -743,7 +763,7 @@ namespace ManiaNet.DedicatedServer.Controller
 
             foreach (var plugin in plugins.Values)
             {
-                Console.Write(PluginBase.GetName(plugin.GetType()) + " ... ");
+                Console.WriteLine(PluginBase.GetName(plugin.GetType()) + " ...");
                 Console.WriteLine(plugin.Unload() ? "OK" : "Failed");
             }
 

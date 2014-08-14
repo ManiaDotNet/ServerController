@@ -16,6 +16,11 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
         public bool AllowManialinkHiding { get; private set; }
 
         /// <summary>
+        /// Gets the path to the database file.
+        /// </summary>
+        public string DatabasePath { get; private set; }
+
+        /// <summary>
         /// Gets the Login that the controller will use to authenticate with the xml rpc server.
         /// </summary>
         public string Login { get; private set; }
@@ -55,6 +60,15 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
             {
                 get { return config.AllowManialinkHiding; }
                 set { config.AllowManialinkHiding = value; }
+            }
+
+            /// <summary>
+            /// Gets or sets the path to the database file.
+            /// </summary>
+            public string DatabasePath
+            {
+                get { return config.DatabasePath; }
+                set { config.DatabasePath = value; }
             }
 
             /// <summary>
@@ -129,6 +143,7 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
             {
                 return new XElement("serverControllerConfig",
                     new XElement("allowManialinkHiding", AllowManialinkHiding),
+                    new XElement("databasePath", DatabasePath),
                     new XElement("manialinkRefreshInterval", ManialinkRefreshInterval),
                     new XElement("login", Login),
                     new XElement("password", Password),
@@ -138,16 +153,17 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
             protected override bool parseXml(XElement xElement)
             {
                 if (!xElement.Name.LocalName.Equals("serverControllerConfig")
-                    || !xElement.HasElements || xElement.Elements().Count() != 5)
+                    || !xElement.HasElements || xElement.Elements().Count() != 6)
                     return false;
 
-                XElement allowManialinkHidingElement = xElement.Element("allowManialinkHiding");
-                XElement manialinkRefreshIntervalElement = xElement.Element("manialinkRefreshInterval");
-                XElement loginElement = xElement.Element("login");
-                XElement passwordElement = xElement.Element("password");
-                XElement pluginFoldersElement = xElement.Element("pluginFolders");
+                var allowManialinkHidingElement = xElement.Element("allowManialinkHiding");
+                var databasePathElement = xElement.Element("databasePath");
+                var manialinkRefreshIntervalElement = xElement.Element("manialinkRefreshInterval");
+                var loginElement = xElement.Element("login");
+                var passwordElement = xElement.Element("password");
+                var pluginFoldersElement = xElement.Element("pluginFolders");
 
-                if (allowManialinkHidingElement == null || manialinkRefreshIntervalElement == null
+                if (allowManialinkHidingElement == null || databasePathElement == null || manialinkRefreshIntervalElement == null
                     || loginElement == null || passwordElement == null || pluginFoldersElement == null
                     || !pluginFoldersElement.HasElements || pluginFoldersElement.Elements().Any(element => !element.Name.LocalName.Equals("pluginFolder")))
                     return false;
@@ -160,6 +176,7 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
                     return false;
 
                 AllowManialinkHiding = allowManialinkHiding;
+                DatabasePath = databasePathElement.Value;
                 ManialinkRefreshInterval = manialinkRefreshInterval;
                 Login = loginElement.Value;
                 Password = passwordElement.Value;

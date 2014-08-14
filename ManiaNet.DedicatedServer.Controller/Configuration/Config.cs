@@ -19,7 +19,7 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
         /// <typeparam name="TConfigBuilder">The type of the deriving builder.</typeparam>
         public abstract class BuilderBase<TConfig, TConfigBuilder>
             where TConfig : Config
-            where TConfigBuilder : Config.BuilderBase<TConfig, TConfigBuilder>
+            where TConfigBuilder : BuilderBase<TConfig, TConfigBuilder>
         {
             /// <summary>
             /// Gets a *copy* of the internal state of the builder.
@@ -63,8 +63,12 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
                     if (!Directory.Exists(Path.GetDirectoryName(configFilePath)))
                         Directory.CreateDirectory(Path.GetDirectoryName(configFilePath));
 
-                    try { File.WriteAllText(configFilePath, new StreamReader(Assembly.GetCallingAssembly().GetManifestResourceStream(configResource)).ReadToEnd()); }
-                    catch { }
+                    try
+                    {
+                        File.WriteAllText(configFilePath, new StreamReader(Assembly.GetCallingAssembly().GetManifestResourceStream(configResource)).ReadToEnd());
+                    }
+                    catch
+                    { }
                 }
 
                 return parseXml(XDocument.Load(configFilePath).Root);
@@ -83,7 +87,10 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
 
                     File.WriteAllText(configFilePath, generateXml().ToString());
                 }
-                catch { return false; }
+                catch
+                {
+                    return false;
+                }
 
                 return true;
             }
