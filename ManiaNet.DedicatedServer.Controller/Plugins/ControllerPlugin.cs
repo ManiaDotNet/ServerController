@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 
 namespace ManiaNet.DedicatedServer.Controller.Plugins
 {
@@ -19,6 +20,8 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// * means any client. This has a lower precedence than the actual login.
         /// </summary>
         protected Dictionary<string, string> clientManialinks = new Dictionary<string, string>();
+
+        private static readonly Assembly serverControllerAssembly = Assembly.GetExecutingAssembly();
 
         /// <summary>
         /// Gets a readonly dictionary containing the manialink elements that the plugin wants to display.
@@ -52,6 +55,21 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// </summary>
         /// <returns>Whether it unloaded successfully or not.</returns>
         public abstract bool Unload();
+
+        /// <summary>
+        /// Takes an assembly and returns whether it's the Server Controller assembly or not.
+        /// <para/>
+        /// Allows the plugin to make sure that only the Server Controller can call certain methods.
+        /// <para/>
+        /// Usage: isAssemblyServerController(Assembly.GetCallingAssembly());
+        /// </summary>
+        /// <example>isAssemblyServerController(Assembly.GetCallingAssembly());</example>
+        /// <param name="assembly">The assembly to check.</param>
+        /// <returns>Whether the given assembly is the Server Controller assembly or not.</returns>
+        protected bool isAssemblyServerController(Assembly assembly)
+        {
+            return serverControllerAssembly.Equals(assembly);
+        }
 
         /// <summary>
         /// Used by the deriving plugins to fire the ClientManialinksChanged event.

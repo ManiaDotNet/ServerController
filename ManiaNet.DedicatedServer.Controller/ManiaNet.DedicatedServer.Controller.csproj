@@ -33,6 +33,9 @@
     <Prefer32Bit>false</Prefer32Bit>
     <DocumentationFile>bin\Release\ManiaNet.DedicatedServer.Controller.xml</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="NClone">
       <HintPath>..\packages\NClone.1.1.0\lib\net45\NClone.dll</HintPath>
@@ -83,6 +86,17 @@
     <EmbeddedResource Include="Configuration\ServerControllerConfig.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>if exist "$(SolutionDir)..\ServerController" (
+	echo "Copying .dll and .xml to Plugins"
+	for %25%25p in ( "CurrentMap", "ChallengeAdvisor" ) do (
+		if exist "$(SolutionDir)..\%25%25p" (
+			copy /Y "$(TargetPath)" "$(SolutionDir)..\%25%25p"
+			copy /Y  "$(TargetDir)$(TargetName).xml" "$(SolutionDir)..\%25%25p"
+		)
+	)
+)</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
