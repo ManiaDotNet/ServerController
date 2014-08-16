@@ -87,13 +87,11 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>if exist "$(SolutionDir)..\ServerController" (
-	echo "Copying .dll and .xml to Plugins"
-	for %25%25p in ( "CurrentMap", "ChallengeAdvisor" ) do (
-		if exist "$(SolutionDir)..\%25%25p" (
-			copy /Y "$(TargetPath)" "$(SolutionDir)..\%25%25p"
-			copy /Y  "$(TargetDir)$(TargetName).xml" "$(SolutionDir)..\%25%25p"
-		)
+    <PostBuildEvent>echo "Copying .dll and .xml to Plugins"
+for %25%25p in ( "CurrentMap", "ChallengeAdvisor" ) do (
+	if exist "$(SolutionDir)..\%25%25p" (
+		copy /Y "$(TargetPath)" "$(SolutionDir)..\%25%25p"
+		copy /Y  "$(TargetDir)$(TargetName).xml" "$(SolutionDir)..\%25%25p"
 	)
 )</PostBuildEvent>
   </PropertyGroup>

@@ -7,6 +7,7 @@ using SQLite;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -58,6 +59,14 @@ namespace ManiaNet.DedicatedServer.Controller
         /// Gets the connection to the SQLite database.
         /// </summary>
         public SQLiteConnection Database { get; private set; }
+
+        /// <summary>
+        /// Gets a readonly Dictionary of the loaded Controller Plugins.
+        /// </summary>
+        public ReadOnlyDictionary<string, ControllerPlugin> Plugins
+        {
+            get { return new ReadOnlyDictionary<string, ControllerPlugin>(plugins); }
+        }
 
         /// <summary>
         /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.Controller.ServerController"/> class with the given XmlRpc client and config.
