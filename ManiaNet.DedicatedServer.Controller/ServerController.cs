@@ -507,7 +507,7 @@ namespace ManiaNet.DedicatedServer.Controller
 
         private void unhidePlugins(ManiaPlanetPlayerChat playerChatCall)
         {
-            string[] pluginIds = playerChatCall.Text.ToLower().Split(' ').Skip(1).ToArray();
+            var pluginIds = playerChatCall.Text.ToLower().Split(' ').Skip(1).ToArray();
 
             if (pluginIds.Length < 1)
                 CallMethod(new ChatSendServerMessageToId("Usage: /unhide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);

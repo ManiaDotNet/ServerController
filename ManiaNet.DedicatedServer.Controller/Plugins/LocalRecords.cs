@@ -82,14 +82,6 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
 
     internal class Record
     {
-        public Record(string player, int time, List<int> checkpoints)
-        {
-            // check for valid amount of checkpoints?
-            Player = player;
-            Time = time;
-            Checkpoints = checkpoints;
-        }
-
         /// <summary>
         /// A list of the checkpoint times during the run.
         /// </summary>
@@ -109,6 +101,14 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// The time the player achieved.
         /// </summary>
         public int Time { get; private set; }
+
+        public Record(string player, int time, List<int> checkpoints)
+        {
+            // check for valid amount of checkpoints?
+            Player = player;
+            Time = time;
+            Checkpoints = checkpoints;
+        }
     }
 
     // TODO: Rename class?
@@ -117,18 +117,6 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
     /// </summary>
     internal class RecordDiff
     {
-        public RecordDiff(Record oldRecord, Record newRecord)
-        {
-            Player = newRecord.Player;
-            NewTime = newRecord.Time;
-            NewCheckpoints = newRecord.Checkpoints;
-            NewRank = newRecord.Rank;
-            OldTime = oldRecord.Time;
-            OldCheckpoints = oldRecord.Checkpoints;
-            OldRank = oldRecord.Rank;
-            TimeDifference = NewTime - OldTime;
-        }
-
         public List<int> NewCheckpoints { get; private set; }
 
         public int NewRank { get; private set; }
@@ -144,6 +132,18 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         public string Player { get; private set; }
 
         public int TimeDifference { get; private set; }
+
+        public RecordDiff(Record oldRecord, Record newRecord)
+        {
+            Player = newRecord.Player;
+            NewTime = newRecord.Time;
+            NewCheckpoints = newRecord.Checkpoints;
+            NewRank = newRecord.Rank;
+            OldTime = oldRecord.Time;
+            OldCheckpoints = oldRecord.Checkpoints;
+            OldRank = oldRecord.Rank;
+            TimeDifference = NewTime - OldTime;
+        }
     }
 
     internal class RecordSet
@@ -151,15 +151,15 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         private List<Record> records;
         private Dictionary<string, Record> recordsByLogin = new Dictionary<string, Record>();
 
+        public string Map { get; private set; }
+
         public RecordSet(string uid)
         {
             Map = uid;
             setupDB();
             // TODO: read records from DB
-            string query = String.Format("SELECT * FROM `records` WHERE `map`='{0}' AND `valid`=1 ORDER BY `time` ASC", Map);
+            var query = String.Format("SELECT * FROM `records` WHERE `map`='{0}' AND `valid`=1 ORDER BY `time` ASC", Map);
         }
-
-        public string Map { get; private set; }
 
         /// <summary>
         /// Adds a record to the sets, updates all ranks.

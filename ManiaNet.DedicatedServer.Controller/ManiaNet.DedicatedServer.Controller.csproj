@@ -66,7 +66,6 @@
     <Compile Include="Configuration\ServerControllerConfig.cs" />
     <Compile Include="Database\Client.cs" />
     <Compile Include="Plugins\LocalRecords.cs" />
-    <Compile Include="Plugins\LocalRecords\LocalRecords.cs" />
     <Compile Include="ServerController.cs" />
     <Compile Include="Database\Map.cs" />
     <Compile Include="GlobalSuppressions.cs" />
