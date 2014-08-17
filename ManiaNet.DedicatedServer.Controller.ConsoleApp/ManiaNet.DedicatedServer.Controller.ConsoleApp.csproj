@@ -7,8 +7,8 @@
     <ProjectGuid>{C2253BEF-10A4-426A-B4CE-AC7F11EF7AFC}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ManiaNet.DedicatedServer.ServerController.ConsoleApp</RootNamespace>
-    <AssemblyName>ManiaNet.DedicatedServer.ServerController.ConsoleApp</AssemblyName>
+    <RootNamespace>ManiaNet.DedicatedServer.Controller.ConsoleApp</RootNamespace>
+    <AssemblyName>ManiaNet.DedicatedServer.Controller.ConsoleApp</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
