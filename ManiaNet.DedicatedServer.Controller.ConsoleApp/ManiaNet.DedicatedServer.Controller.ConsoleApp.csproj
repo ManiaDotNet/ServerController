@@ -40,13 +40,13 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
-    <Reference Include="XmlRpc, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\XmlRpc.1.1\lib\XmlRpc.dll</HintPath>
-    </Reference>
     <Reference Include="ManiaNet.DedicatedServer, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\ManiaNet.DedicatedServer.dll</HintPath>
+    </Reference>
+    <Reference Include="XmlRpc, Version=2.0.5343.36861, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\XmlRpc.2.0\lib\XmlRpc.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
