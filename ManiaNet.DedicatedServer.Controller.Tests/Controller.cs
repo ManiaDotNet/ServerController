@@ -8,7 +8,7 @@ namespace ManiaNet.DedicatedServer.Controller.Tests
     [TestClass]
     public class Controller
     {
-        private ServerController controller;
+        private readonly ServerController controller;
 
         public Controller()
         {

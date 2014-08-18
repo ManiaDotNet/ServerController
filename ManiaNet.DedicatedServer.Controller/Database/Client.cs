@@ -8,18 +8,22 @@ namespace ManiaNet.DedicatedServer.Controller.Database
     /// <summary>
     /// Represents an entry in the Clients table.
     /// </summary>
+    [Table("Clients")]
     public sealed class Client
     {
-        [NotNull]
-        public DateTime LastVisit { get; set; }
+        [Column("Data"), Unique, NotNull]
+        public string Data { get; set; }
 
-        [PrimaryKey, Unique, NotNull]
+        [Column("Fetched"), NotNull]
+        public long Fetched { get; set; }
+
+        [Column("Login"), PrimaryKey, Unique, NotNull]
         public string Login { get; set; }
 
-        [NotNull]
+        [Column("Nickname"), NotNull]
         public string Nickname { get; set; }
 
-        [NotNull]
-        public int Visits { get; set; }
+        [Column("Path"), NotNull]
+        public string Path { get; set; }
     }
 }

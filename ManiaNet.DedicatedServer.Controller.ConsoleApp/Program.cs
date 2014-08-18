@@ -9,7 +9,8 @@ namespace ManiaNet.DedicatedServer.Controller.ConsoleApp
     internal class Program
     {
         [UsedImplicitly]
-        private static void main(string[] args)
+        // ReSharper disable once InconsistentNaming
+        private static void Main(string[] args)
         {
             var xmlRpcConnection = new XmlRpcClient(new XmlRpcClient.Config(port: 5001));
 
