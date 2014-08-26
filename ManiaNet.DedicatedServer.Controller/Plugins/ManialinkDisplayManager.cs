@@ -50,7 +50,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
             //    return true;
 
             controller.RegisterCommand("hide", hidePlugins);
-            controller.RegisterCommand("unhide", unhidePlugins);
+            controller.RegisterCommand("show", showPlugins);
 
             return true;
         }
@@ -137,7 +137,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
                 if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin))
                     clientsDisabledPluginDisplays.Add(playerChatCall.ClientLogin, new List<string>());
 
-                var response = new StringBuilder("Hid display of plugins: ");
+                var response = new StringBuilder("Hiding display of plugins: ");
                 foreach (var hidePlugin in hidePlugins)
                 {
                     if (!clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Contains(hidePlugin))
@@ -170,30 +170,30 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
             }
         }
 
-        private void unhidePlugins(ManiaPlanetPlayerChat playerChatCall)
+        private void showPlugins(ManiaPlanetPlayerChat playerChatCall)
         {
             var pluginIds = playerChatCall.Text.ToLower().Split(' ').Skip(1).ToArray();
 
             if (pluginIds.Length < 1)
-                controller.CallMethod(new ChatSendServerMessageToId("Usage: /unhide pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
+                controller.CallMethod(new ChatSendServerMessageToId("Usage: /show pluginId1 [pluginId2 ...]", playerChatCall.ClientId), 0);
 
             if (!clientsDisabledPluginDisplays.ContainsKey(playerChatCall.ClientLogin)
                 || !clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Any())
             {
-                controller.CallMethod(new ChatSendServerMessageToId("No plugins to unhide.", playerChatCall.ClientId), 0);
+                controller.CallMethod(new ChatSendServerMessageToId("No plugins to show.", playerChatCall.ClientId), 0);
                 return;
             }
 
-            var unhidePlugins = pluginIds.Where(pluginId => clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Remove(pluginId)).ToArray();
+            var showPlugins = pluginIds.Where(pluginId => clientsDisabledPluginDisplays[playerChatCall.ClientLogin].Remove(pluginId)).ToArray();
 
-            if (unhidePlugins.Length > 0)
+            if (showPlugins.Length > 0)
             {
-                var response = new StringBuilder("Unhid display of plugins: ");
-                foreach (var unhidePlugin in unhidePlugins)
+                var response = new StringBuilder("Showing display of plugins: ");
+                foreach (var showPlugin in showPlugins)
                 {
-                    response.Append(GetName(controller.Plugins[unhidePlugin].GetType()));
+                    response.Append(GetName(controller.Plugins[showPlugin].GetType()));
                     response.Append(" (");
-                    response.Append(unhidePlugin);
+                    response.Append(showPlugin);
                     response.Append("), ");
                 }
 
