@@ -37,6 +37,10 @@
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ManiaNet.DedicatedServer, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ManiaNet.DedicatedServer.1.0.0\lib\net45\ManiaNet.DedicatedServer.dll</HintPath>
+    </Reference>
     <Reference Include="NClone">
       <HintPath>..\packages\NClone.1.1.0\lib\net45\NClone.dll</HintPath>
     </Reference>
@@ -48,6 +52,15 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.SQLite, Version=1.0.93.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Data.SQLite.Core.1.0.93.0\lib\net45\System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite.Linq, Version=1.0.93.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Data.SQLite.Linq.1.0.93.0\lib\net45\System.Data.SQLite.Linq.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.AspNet.Razor.3.2.0\lib\net45\System.Web.Razor.dll</HintPath>
@@ -55,13 +68,9 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
-    <Reference Include="ManiaNet.DedicatedServer, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="XmlRpc, Version=2.1.5351.40265, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\ManiaNet.DedicatedServer.dll</HintPath>
-    </Reference>
-    <Reference Include="XmlRpc, Version=2.0.5343.36861, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\XmlRpc.2.0\lib\XmlRpc.dll</HintPath>
+      <HintPath>..\packages\XmlRpc.2.1\lib\net45\XmlRpc.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -69,23 +78,37 @@
     <Compile Include="Configuration\ServerControllerConfig.cs" />
     <Compile Include="Database\Client.cs" />
     <Compile Include="Database\ClientsAccess.cs" />
+    <Compile Include="Plugins\Interfaces\Manialink\IManialinkDisplayManager.cs" />
+    <Compile Include="Plugins\Interfaces\Manialink\IManialinkProvider.cs" />
     <Compile Include="Plugins\LocalRecords.cs" />
+    <Compile Include="Plugins\ManialinkDisplayManager.cs" />
+    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="ServerController.cs" />
     <Compile Include="Database\Map.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Plugins\ControllerPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Database\SQLite.cs" />
-    <Compile Include="Database\SQLiteAsync.cs" />
     <Compile Include="Tools.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ClientManialinkTemplate.csxml" />
-    <None Include="packages.config" />
+    <None Include="app.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Configuration\ServerControllerConfig.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="x64\SQLite.Interop.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x86\SQLite.Interop.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if "$(ConfigurationName)" == "Release" (

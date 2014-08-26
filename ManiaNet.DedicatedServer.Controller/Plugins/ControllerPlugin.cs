@@ -1,7 +1,7 @@
-﻿using SharpPlugins;
+﻿using ManiaNet.DedicatedServer.Controller.Annotations;
+using SharpPlugins;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 
@@ -12,28 +12,12 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
     /// </summary>
     public abstract class ControllerPlugin : PluginBase
     {
-        /// <summary>
-        /// Dictionary containing the manialink elements that the plugin wants to display.
-        /// <para/>
-        /// Key is the login of the client that the elements are for, Value is a string containing the elements.
-        /// <para/>
-        /// * means any client. This has a lower precedence than the actual login.
-        /// </summary>
-        protected Dictionary<string, string> clientManialinks = new Dictionary<string, string>();
-
         private static readonly Assembly serverControllerAssembly = Assembly.GetExecutingAssembly();
 
         /// <summary>
-        /// Gets a readonly dictionary containing the manialink elements that the plugin wants to display.
-        /// <para/>
-        /// Key is the login of the client that the elements are for, Value is a string containing the elements.
-        /// <para/>
-        /// * means any client. This has a lower precedence than the actual login.
+        /// Gets whether the plugin requires its Run method to be called.
         /// </summary>
-        public ReadOnlyDictionary<string, string> ClientManialinks
-        {
-            get { return new ReadOnlyDictionary<string, string>(clientManialinks); }
-        }
+        public abstract bool RequiresRun { get; }
 
         /// <summary>
         /// Gets called when the plugin is loaded.
@@ -41,7 +25,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// </summary>
         /// <param name="controller">The controller loading the plugin.</param>
         /// <returns>Whether it loaded successfully or not.</returns>
-        public abstract bool Load(ServerController controller);
+        public abstract bool Load([NotNull] ServerController controller);
 
         /// <summary>
         /// The main method of the plugin.
@@ -66,23 +50,9 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// <example>isAssemblyServerController(Assembly.GetCallingAssembly());</example>
         /// <param name="assembly">The assembly to check.</param>
         /// <returns>Whether the given assembly is the Server Controller assembly or not.</returns>
-        protected bool isAssemblyServerController(Assembly assembly)
+        protected static bool isAssemblyServerController([NotNull] Assembly assembly)
         {
             return serverControllerAssembly.Equals(assembly);
         }
-
-        /// <summary>
-        /// Used by the deriving plugins to fire the ClientManialinksChanged event.
-        /// </summary>
-        protected void onClientManialinksChanged()
-        {
-            if (ClientManialinksChanged != null)
-                ClientManialinksChanged();
-        }
-
-        /// <summary>
-        /// Fires when a change was made to the ClientManialinks dictionary.
-        /// </summary>
-        public event Action ClientManialinksChanged;
     }
 }

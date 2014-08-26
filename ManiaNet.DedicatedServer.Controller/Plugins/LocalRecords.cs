@@ -10,6 +10,11 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         private Dictionary<string, List<int>> currentSplits;
         private RecordSet records;
 
+        public override bool RequiresRun
+        {
+            get { return false; }
+        }
+
         /// <summary>
         /// Gets called when the plugin is loaded.
         /// Use this to add your methods to the controller's events and load your saved data.
