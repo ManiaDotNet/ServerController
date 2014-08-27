@@ -1,4 +1,4 @@
-﻿using ManiaNet.DedicatedServer.Annotations;
+﻿using ManiaNet.DedicatedServer.Controller.Annotations;
 using ManiaNet.DedicatedServer.Controller.Configuration;
 using ManiaNet.DedicatedServer.Controller.Plugins;
 using ManiaNet.DedicatedServer.Controller.Plugins.Interfaces.Manialink;
@@ -35,6 +35,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <summary>
         /// Gets the logins of the connected clients.
         /// </summary>
+        [NotNull, UsedImplicitly]
         public IEnumerable<string> Clients
         {
             get
@@ -49,22 +50,25 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <summary>
         /// Gets the configuration of the controller.
         /// </summary>
+        [NotNull, UsedImplicitly]
         public ServerControllerConfig Configuration { get; private set; }
 
         /// <summary>
         /// Gets the connection to the SQLite database.
         /// </summary>
+        [NotNull, UsedImplicitly]
         public SQLiteConnection Database { get; private set; }
 
         /// <summary>
         /// Gets the Manialink Display Manager used by the Controller.
         /// </summary>
-        [UsedImplicitly]
+        [NotNull, UsedImplicitly]
         public IManialinkDisplayManager ManialinkDisplayManager { get; private set; }
 
         /// <summary>
         /// Gets a readonly Dictionary of the loaded Controller Plugins.
         /// </summary>
+        [NotNull, UsedImplicitly]
         public ReadOnlyDictionary<string, ControllerPlugin> Plugins
         {
             get { return new ReadOnlyDictionary<string, ControllerPlugin>(plugins); }
@@ -75,7 +79,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// </summary>
         /// <param name="xmlRpcClient">The client used to communicate with the server.</param>
         /// <param name="config">The configuration for the controller.</param>
-        public ServerController(IXmlRpcClient xmlRpcClient, ServerControllerConfig config)
+        public ServerController([NotNull] IXmlRpcClient xmlRpcClient, [NotNull] ServerControllerConfig config)
         {
             this.xmlRpcClient = xmlRpcClient;
             this.xmlRpcClient.MethodResponse += xmlRpcClient_MethodResponse;
@@ -92,7 +96,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.Controller.ServerController"/> class with the given XmlRpc client and the config loaded from disk/default.
         /// </summary>
         /// <param name="xmlRpcClient">The client used to communicate with the server.</param>
-        public ServerController(IXmlRpcClient xmlRpcClient)
+        public ServerController([NotNull] IXmlRpcClient xmlRpcClient)
             : this(xmlRpcClient, new ServerControllerConfig.Builder().Config)
         { }
 
@@ -106,7 +110,8 @@ namespace ManiaNet.DedicatedServer.Controller
         /// If the timeout is less than or equal to zero, the function will return true, as it won't wait for the response.</param>
         /// <returns>Whether the call was returned (regardless of whether successful or not).</returns>
         /// <remarks>If the timeout is less than or equal to zero, the function will return true, as it won't wait for the response.</remarks>
-        public bool CallMethod<TReturn, TReturnBase>(XmlRpcMethodCall<TReturn, TReturnBase> methodCall, int timeout) where TReturn : XmlRpcType<TReturnBase>, new()
+        [UsedImplicitly]
+        public bool CallMethod<TReturn, TReturnBase>([NotNull] XmlRpcMethodCall<TReturn, TReturnBase> methodCall, int timeout) where TReturn : XmlRpcType<TReturnBase>, new()
         {
             var methodHandle = xmlRpcClient.SendRequest(methodCall.GenerateCallXml().ToString());
 
@@ -134,6 +139,7 @@ namespace ManiaNet.DedicatedServer.Controller
             return true;
         }
 
+        [UsedImplicitly]
         public void Dispose()
         {
             Database.Dispose();
@@ -144,6 +150,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <summary>
         /// Starts the controller.
         /// </summary>
+        [UsedImplicitly]
         public bool Start()
         {
             xmlRpcClient.StartReceive();
@@ -175,6 +182,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <summary>
         /// Stops the controller.
         /// </summary>
+        [UsedImplicitly]
         public void Stop()
         {
             stopPlugins();
@@ -540,6 +548,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// </summary>
         /// <param name="identifier">The identifier to check.</param>
         /// <returns>Whether the plugin is loaded.</returns>
+        [UsedImplicitly]
         public bool IsPluginLoaded(string identifier)
         {
             return plugins.ContainsKey(identifier);
@@ -548,6 +557,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <summary>
         /// Performs a stop-unload-load-start cycle on the plugins.
         /// </summary>
+        [UsedImplicitly]
         public void ReloadPlugins()
         {
             stopPlugins();
@@ -588,7 +598,8 @@ namespace ManiaNet.DedicatedServer.Controller
 
             if (manialinkDisplayManager != null)
             {
-                Console.WriteLine("Using custom Manialink Display Manager: " + PluginBase.GetName(manialinkDisplayManager.GetType()));
+                Console.WriteLine("Using custom Manialink Display Manager: " + PluginBase.GetName(manialinkDisplayManager.GetType()) + " ("
+                                  + PluginBase.GetIdentifier(manialinkDisplayManager.GetType()) + ")");
                 ManialinkDisplayManager = (IManialinkDisplayManager)manialinkDisplayManager;
             }
             else
@@ -603,7 +614,7 @@ namespace ManiaNet.DedicatedServer.Controller
                 }
             }
 
-            Console.WriteLine("Done");
+            Console.WriteLine("Completed Loading Plugins.");
         }
 
         private void startPlugins()
@@ -660,41 +671,49 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <summary>
         /// Fires when a map begins.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetBeginMap> BeginMap;
 
         /// <summary>
         /// Fires when a match begins.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetBeginMatch> BeginMatch;
 
         /// <summary>
         /// Fires when a bill is updated.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetBillUpdated> BillUpdated;
 
         /// <summary>
         /// Fires when the <see cref="ManiaNet.DedicatedServer.XmlRpc.Methods.Echo"/> method is called by another controller.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetEcho> Echo;
 
         /// <summary>
         /// Fires when a map ended.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetEndMap> EndMap;
 
         /// <summary>
         /// Fires when a match ended.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetEndMatch> EndMatch;
 
         /// <summary>
         /// Fires when the map playlist is modified.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetMapListModified> MapListModified;
 
         /// <summary>
         /// Fires when a player changes allies.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetPlayerAlliesChanged> PlayerAlliesChanged;
 
         /// <summary>
@@ -702,41 +721,49 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <para/>
         /// Doesn't get fired when the message is a registered command.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetPlayerChat> PlayerChat;
 
         /// <summary>
         /// Fires when a player drives through a checkpoint.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<TrackManiaPlayerCheckpoint> PlayerCheckpoint;
 
         /// <summary>
         /// Fires when a client connected to the server.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetPlayerConnect> PlayerConnect;
 
         /// <summary>
         /// Fires when a client disconnected from the server.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetPlayerDisconnect> PlayerDisconnect;
 
         /// <summary>
         /// Fires when a player finishes the map.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<TrackManiaPlayerFinish> PlayerFinish;
 
         /// <summary>
         /// Fires when a player sends incoherent data.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<TrackManiaPlayerIncoherence> PlayerIncoherence;
 
         /// <summary>
         /// Fires when a client's info changed.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetPlayerInfoChanged> PlayerInfoChanged;
 
         /// <summary>
         /// Fires when a client answered a mnailink page.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetPlayerManialinkPageAnswer> PlayerManialinkPageAnswer;
 
         /// <summary>
@@ -751,26 +778,31 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <summary>
         /// Fires when the server is started.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetServerStart> ServerStart;
 
         /// <summary>
         /// Fires when the server is stopped.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetServerStop> ServerStop;
 
         /// <summary>
         /// Fires when the server's status changed.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetStatusChanged> StatusChanged;
 
         /// <summary>
         /// Fires when the server receives tunneled data.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetTunnelDataReceived> TunnelDataReceived;
 
         /// <summary>
         /// Fires when the current vote's state changes.
         /// </summary>
+        [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetVoteUpdated> VoteUpdated;
 
         #endregion Callback Events

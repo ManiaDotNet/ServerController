@@ -1,25 +1,31 @@
-﻿namespace ManiaNet.DedicatedServer.Controller.Plugins.Interfaces.Manialink
+﻿using ManiaNet.DedicatedServer.Controller.Annotations;
+
+namespace ManiaNet.DedicatedServer.Controller.Plugins.Interfaces.Manialink
 {
     /// <summary>
-    /// Defines methods for a manialink display manager.
+    /// Defines methods for a Manialink Display Manager.
     /// </summary>
+    [UsedImplicitly]
     public interface IManialinkDisplayManager
     {
         /// <summary>
-        /// Tells the manager to refresh the displayed Manialink Pages.
+        /// Tells the Manager to refresh the displayed Manialink Pages.
         /// </summary>
+        [UsedImplicitly]
         void Refresh();
 
         /// <summary>
-        /// Makes the provider known to the manager, so it can display the Manialink Pages of it.
+        /// Makes the Provider known to the Manager, so it can display the Manialink Pages of it.
         /// </summary>
-        /// <param name="provider">The manialink provider.</param>
-        void RegisterProvider(IManialinkProvider provider);
+        /// <param name="provider">The Manialink Provider.</param>
+        [UsedImplicitly]
+        void RegisterProvider([NotNull] IManialinkProvider provider);
 
         /// <summary>
-        /// Tells the manager to stop displaying the pages of the provider.
+        /// Tells the Manager to stop displaying the pages of the Provider.
         /// </summary>
-        /// <param name="provider">The manialink provider.</param>
-        void UnregisterProvider(IManialinkProvider provider);
+        /// <param name="provider">The Manialink Provider.</param>
+        [UsedImplicitly]
+        void UnregisterProvider([NotNull] IManialinkProvider provider);
     }
 }

@@ -20,7 +20,11 @@ namespace ManiaNet.DedicatedServer.Controller.ConsoleApp
 #endif
 
             var controller = new ServerController(xmlRpcConnection);
-            controller.Start();
+
+            if (controller.Start())
+                Console.WriteLine("Controller started successfully.");
+            else
+                Console.WriteLine("Controller start failed.");
 
             Console.ReadLine();
         }

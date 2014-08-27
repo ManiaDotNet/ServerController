@@ -78,6 +78,8 @@
     <Compile Include="Configuration\ServerControllerConfig.cs" />
     <Compile Include="Database\Client.cs" />
     <Compile Include="Database\ClientsAccess.cs" />
+    <Compile Include="Plugins\Interfaces\Clients\ClientInfo.cs" />
+    <Compile Include="Plugins\Interfaces\Clients\IClientInfoProvider.cs" />
     <Compile Include="Plugins\Interfaces\Manialink\IManialinkDisplayManager.cs" />
     <Compile Include="Plugins\Interfaces\Manialink\IManialinkProvider.cs" />
     <Compile Include="Plugins\LocalRecords.cs" />
@@ -108,7 +110,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Plugins\Interfaces\Records\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if "$(ConfigurationName)" == "Release" (

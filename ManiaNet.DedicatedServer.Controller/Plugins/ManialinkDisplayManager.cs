@@ -39,6 +39,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
             get { return true; }
         }
 
+        // ReSharper disable once ParameterHidesMember
         public override bool Load(ServerController controller)
         {
             if (!isAssemblyServerController(Assembly.GetCallingAssembly()))
