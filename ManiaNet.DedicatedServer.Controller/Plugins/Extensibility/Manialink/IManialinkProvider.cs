@@ -1,8 +1,9 @@
-﻿using ManiaNet.DedicatedServer.Controller.Annotations;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using ManiaNet.DedicatedServer.Controller.Annotations;
 
-namespace ManiaNet.DedicatedServer.Controller.Plugins.Interfaces.Manialink
+namespace ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Manialink
 {
     /// <summary>
     /// Defines a property for Manialink Providers.

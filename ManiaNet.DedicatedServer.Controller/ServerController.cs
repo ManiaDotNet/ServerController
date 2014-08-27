@@ -1,7 +1,7 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Annotations;
 using ManiaNet.DedicatedServer.Controller.Configuration;
 using ManiaNet.DedicatedServer.Controller.Plugins;
-using ManiaNet.DedicatedServer.Controller.Plugins.Interfaces.Manialink;
+using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Manialink;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using SharpPlugins;
 using System;
@@ -85,7 +85,8 @@ namespace ManiaNet.DedicatedServer.Controller
             this.xmlRpcClient.MethodResponse += xmlRpcClient_MethodResponse;
             this.xmlRpcClient.ServerCallback += xmlRpcClient_ServerCallback;
 
-            Database = new SQLiteConnection(config.DatabasePath, true);
+            Database = new SQLiteConnection("Data Source=" + config.DatabasePath, true);
+            Database.Open();
 
             Configuration = config;
 

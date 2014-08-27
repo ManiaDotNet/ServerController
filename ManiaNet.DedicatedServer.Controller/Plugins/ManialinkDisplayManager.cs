@@ -1,5 +1,5 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Annotations;
-using ManiaNet.DedicatedServer.Controller.Plugins.Interfaces.Manialink;
+using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Manialink;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using RazorEngine;
 using System;
@@ -15,7 +15,7 @@ using System.Threading;
 namespace ManiaNet.DedicatedServer.Controller.Plugins
 {
     /// <summary>
-    /// The default implementation for the Manialink Display Manager.
+    /// The default Manialink Display Manager implementation.
     /// </summary>
     [UsedImplicitly]
     [RegisterPlugin("controller::ManialinkDisplayManager", "Banane9", "Default Manialink Display Manager", "1.0",
@@ -34,11 +34,20 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
 
         private ServerController controller;
 
+        /// <summary>
+        /// Gets whether the plugin requires its Run method to be called.
+        /// </summary>
         public override bool RequiresRun
         {
             get { return true; }
         }
 
+        /// <summary>
+        /// Gets called when the plugin is loaded.
+        /// Use this to add your methods to the controller's events and load your saved data.
+        /// </summary>
+        /// <param name="controller">The controller loading the plugin.</param>
+        /// <returns>Whether it loaded successfully or not.</returns>
         // ReSharper disable once ParameterHidesMember
         public override bool Load(ServerController controller)
         {
@@ -56,11 +65,18 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
             return true;
         }
 
+        /// <summary>
+        /// Tells the Manager to refresh the displayed Manialink Pages.
+        /// </summary>
         public void Refresh()
         {
             clientManialinksNeedRefresh = true;
         }
 
+        /// <summary>
+        /// Makes the Provider known to the Manager, so it can display the Manialink Pages of it.
+        /// </summary>
+        /// <param name="provider">The Manialink Provider.</param>
         public void RegisterProvider(IManialinkProvider provider)
         {
             if (providers.Contains(provider))
@@ -69,6 +85,10 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
             providers.Add(provider);
         }
 
+        /// <summary>
+        /// The main method of the plugin.
+        /// Gets run in its own thread by the controller and should stop gracefully on a <see cref="System.Threading.ThreadAbortException"/>.
+        /// </summary>
         public override void Run()
         {
             var timer = new Stopwatch();
@@ -115,11 +135,20 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
             // ReSharper disable once FunctionNeverReturns
         }
 
+        /// <summary>
+        /// Gets called when the plugin is unloaded.
+        /// Use this to save your data.
+        /// </summary>
+        /// <returns>Whether it unloaded successfully or not.</returns>
         public override bool Unload()
         {
             return isAssemblyServerController(Assembly.GetCallingAssembly());
         }
 
+        /// <summary>
+        /// Tells the Manager to stop displaying the Manialink Pages of the Provider.
+        /// </summary>
+        /// <param name="provider">The Manialink Provider.</param>
         public void UnregisterProvider(IManialinkProvider provider)
         {
             providers.Remove(provider);

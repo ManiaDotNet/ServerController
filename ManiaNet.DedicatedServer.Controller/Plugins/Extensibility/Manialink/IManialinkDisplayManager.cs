@@ -1,6 +1,6 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Annotations;
 
-namespace ManiaNet.DedicatedServer.Controller.Plugins.Interfaces.Manialink
+namespace ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Manialink
 {
     /// <summary>
     /// Defines methods for a Manialink Display Manager.
@@ -22,7 +22,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.Interfaces.Manialink
         void RegisterProvider([NotNull] IManialinkProvider provider);
 
         /// <summary>
-        /// Tells the Manager to stop displaying the pages of the Provider.
+        /// Tells the Manager to stop displaying the Manialink Pages of the Provider.
         /// </summary>
         /// <param name="provider">The Manialink Provider.</param>
         [UsedImplicitly]

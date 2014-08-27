@@ -39,10 +39,17 @@
   <ItemGroup>
     <Reference Include="ManiaNet.DedicatedServer, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\ManiaNet.DedicatedServer.1.0.0\lib\net45\ManiaNet.DedicatedServer.dll</HintPath>
+      <HintPath>..\packages\ManiaNet.DedicatedServer.1.0.1\lib\net45\ManiaNet.DedicatedServer.dll</HintPath>
+    </Reference>
+    <Reference Include="ManiaNet.ManiaPlanet">
+      <HintPath>..\packages\ManiaNet.ManiaPlanet.0.3\lib\portable-net45+win+wpa81\ManiaNet.ManiaPlanet.dll</HintPath>
     </Reference>
     <Reference Include="NClone">
       <HintPath>..\packages\NClone.1.1.0\lib\net45\NClone.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="RazorEngine">
       <HintPath>..\packages\RazorEngine.3.4.1\lib\net45\RazorEngine.dll</HintPath>
@@ -68,25 +75,23 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
-    <Reference Include="XmlRpc, Version=2.1.5351.40265, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="XmlRpc, Version=2.1.5352.29245, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\XmlRpc.2.1\lib\net45\XmlRpc.dll</HintPath>
+      <HintPath>..\packages\XmlRpc.2.1.1\lib\net45\XmlRpc.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Configuration\ServerControllerConfig.cs" />
-    <Compile Include="Database\Client.cs" />
-    <Compile Include="Database\ClientsAccess.cs" />
-    <Compile Include="Plugins\Interfaces\Clients\ClientInfo.cs" />
-    <Compile Include="Plugins\Interfaces\Clients\IClientInfoProvider.cs" />
-    <Compile Include="Plugins\Interfaces\Manialink\IManialinkDisplayManager.cs" />
-    <Compile Include="Plugins\Interfaces\Manialink\IManialinkProvider.cs" />
+    <Compile Include="Plugins\ClientsManager.cs" />
+    <Compile Include="Plugins\Extensibility\Clients\ClientInfo.cs" />
+    <Compile Include="Plugins\Extensibility\Clients\IClientsManager.cs" />
+    <Compile Include="Plugins\Extensibility\Manialink\IManialinkDisplayManager.cs" />
+    <Compile Include="Plugins\Extensibility\Manialink\IManialinkProvider.cs" />
     <Compile Include="Plugins\LocalRecords.cs" />
     <Compile Include="Plugins\ManialinkDisplayManager.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="ServerController.cs" />
-    <Compile Include="Database\Map.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Plugins\ControllerPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -111,7 +116,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Plugins\Interfaces\Records\" />
+    <Folder Include="Plugins\Extensibility\Records\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
