@@ -1,4 +1,5 @@
-﻿using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
+﻿using ManiaNet.DedicatedServer.Controller.Plugins;
+using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;

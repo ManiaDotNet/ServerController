@@ -1,8 +1,11 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Annotations;
 using ManiaNet.DedicatedServer.Controller.Configuration;
 using ManiaNet.DedicatedServer.Controller.Plugins;
+using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Manialink;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
+using ManiaNet.DedicatedServer.XmlRpc.Structs;
+using ManiaNet.ManiaPlanet.WebServices;
 using SharpPlugins;
 using System;
 using System.Collections.Concurrent;
@@ -25,7 +28,6 @@ namespace ManiaNet.DedicatedServer.Controller
     /// </summary>
     public sealed class ServerController : IDisposable
     {
-        private readonly List<string> clients = new List<string>();
         private readonly ConcurrentDictionary<uint, string> methodResponses = new ConcurrentDictionary<uint, string>();
         private readonly ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>> registeredCommands = new ConcurrentDictionary<string, Action<ManiaPlanetPlayerChat>>();
         private readonly IXmlRpcClient xmlRpcClient;
@@ -33,19 +35,10 @@ namespace ManiaNet.DedicatedServer.Controller
         private List<Thread> pluginThreads;
 
         /// <summary>
-        /// Gets the logins of the connected clients.
+        /// Gets the Clients Manager used by the Controller.
         /// </summary>
         [NotNull, UsedImplicitly]
-        public IEnumerable<string> Clients
-        {
-            get
-            {
-                // ReSharper disable once LoopCanBeConvertedToQuery
-                // If clients is returned as it is, user can modify the list by casting back to List<string>
-                foreach (var client in clients)
-                    yield return client;
-            }
-        }
+        public IClientsManager ClientsManager { get; private set; }
 
         /// <summary>
         /// Gets the configuration of the controller.
@@ -73,6 +66,18 @@ namespace ManiaNet.DedicatedServer.Controller
         {
             get { return new ReadOnlyDictionary<string, ControllerPlugin>(plugins); }
         }
+
+        /// <summary>
+        /// Gets the Server Options.
+        /// </summary>
+        [NotNull, UsedImplicitly]
+        public ReturnedServerOptionsStruct ServerOptions { get; private set; }
+
+        /// <summary>
+        /// Gets the ManiaPlanet WebServices Client used by the Controller.
+        /// </summary>
+        [NotNull, UsedImplicitly]
+        public CombiClient WebServicesClient { get; private set; }
 
         /// <summary>
         /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.Controller.ServerController"/> class with the given XmlRpc client and config.
@@ -169,10 +174,10 @@ namespace ManiaNet.DedicatedServer.Controller
 
             Console.WriteLine("Set API Version to " + ApiVersions.Api2013);
 
-            if (!setUpClientsList())
+            if (!setupServerOptions())
                 return false;
 
-            Console.WriteLine("Set-up clients list.");
+            Console.WriteLine("Got Server Options.");
 
             loadPlugins();
             startPlugins();
@@ -453,29 +458,14 @@ namespace ManiaNet.DedicatedServer.Controller
             CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
         }
 
-        private bool setUpClientsList()
+        private bool setupServerOptions()
         {
-            var getPlayerListCall = new GetPlayerList(100, 0);
+            var getServerOptionsCall = new GetServerOptions();
 
-            if (!CallMethod(getPlayerListCall, 1000))
+            if (!CallMethod(getServerOptionsCall, 5000) || getServerOptionsCall.HadFault)
                 return false;
 
-            if (getPlayerListCall.HadFault)
-                return false;
-
-            clients.Clear();
-            clients.AddRange(getPlayerListCall.ReturnValue.Select(clientInfo => clientInfo.Value.Login));
-
-            PlayerConnect += (controller, playerConnectCall) =>
-                             {
-                                 Console.WriteLine(playerConnectCall.Login + " joined");
-                                 if (clients.Contains(playerConnectCall.Login))
-                                     return;
-
-                                 clients.Add(playerConnectCall.Login);
-                                 ManialinkDisplayManager.Refresh();
-                             };
-            PlayerDisconnect += (controller, playerDisconnectCall) => clients.Remove(playerDisconnectCall.Login);
+            ServerOptions = getServerOptionsCall.ReturnValue;
 
             return true;
         }
@@ -612,6 +602,35 @@ namespace ManiaNet.DedicatedServer.Controller
                 {
                     plugins.Add(PluginBase.GetIdentifier(manialinkDisplayManager.GetType()).Replace(' ', '_').Replace('$', '_').ToLower(), manialinkDisplayManager);
                     ManialinkDisplayManager = (IManialinkDisplayManager)manialinkDisplayManager;
+                }
+            }
+
+            Console.WriteLine();
+            ControllerPlugin clientsManager = null;
+            try
+            {
+                clientsManager = plugins.Values.SingleOrDefault(plugin => typeof(IClientsManager).IsAssignableFrom(plugin.GetType()));
+            }
+            catch
+            {
+                Console.WriteLine("Multiple custom Clients Managers found, using default one.");
+            }
+
+            if (clientsManager != null)
+            {
+                Console.WriteLine("Using custom Clients Manager: " + PluginBase.GetName(clientsManager.GetType()) + " ("
+                                  + PluginBase.GetIdentifier(clientsManager.GetType()) + ")");
+                ClientsManager = (IClientsManager)clientsManager;
+            }
+            else
+            {
+                Console.WriteLine("No custom Clients Manager found, using default one.");
+
+                clientsManager = new ClientsManager();
+                if (clientsManager.Load(this))
+                {
+                    plugins.Add(PluginBase.GetIdentifier(clientsManager.GetType()).Replace(' ', '_').Replace('$', '_').ToLower(), clientsManager);
+                    ClientsManager = (IClientsManager)clientsManager;
                 }
             }
 

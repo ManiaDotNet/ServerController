@@ -41,8 +41,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\ManiaNet.DedicatedServer.1.0.1\lib\net45\ManiaNet.DedicatedServer.dll</HintPath>
     </Reference>
-    <Reference Include="ManiaNet.ManiaPlanet">
-      <HintPath>..\packages\ManiaNet.ManiaPlanet.0.3\lib\portable-net45+win+wpa81\ManiaNet.ManiaPlanet.dll</HintPath>
+    <Reference Include="ManiaNet.ManiaPlanet, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ManiaNet.ManiaPlanet.0.4.1\lib\portable-net45+win+wpa81\ManiaNet.ManiaPlanet.dll</HintPath>
     </Reference>
     <Reference Include="NClone">
       <HintPath>..\packages\NClone.1.1.0\lib\net45\NClone.dll</HintPath>
@@ -84,7 +85,8 @@
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Configuration\ServerControllerConfig.cs" />
     <Compile Include="Plugins\ClientsManager.cs" />
-    <Compile Include="Plugins\Extensibility\Clients\ClientInfo.cs" />
+    <Compile Include="Plugins\Client.cs" />
+    <Compile Include="Plugins\Extensibility\Clients\IClient.cs" />
     <Compile Include="Plugins\Extensibility\Clients\IClientsManager.cs" />
     <Compile Include="Plugins\Extensibility\Manialink\IManialinkDisplayManager.cs" />
     <Compile Include="Plugins\Extensibility\Manialink\IManialinkProvider.cs" />
@@ -96,6 +98,7 @@
     <Compile Include="Plugins\ControllerPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tools.cs" />
+    <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ClientManialinkTemplate.csxml" />

@@ -101,7 +101,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
                 clientManialinksNeedRefresh = false;
                 timer.Restart();
 
-                foreach (var client in controller.Clients)
+                foreach (var client in controller.ClientsManager.CurrentClients.Select(client => client.Login))
                 {
                     var clientManialinkElements = new List<string>();
 
