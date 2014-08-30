@@ -28,4 +28,28 @@ public static class Util
     {
         return (long)(dateTime - unixEpoch).TotalSeconds;
     }
+
+    /// <summary>
+    /// Removes and returns the last element of a List.
+    /// </summary>
+    /// <typeparam name="T">List type.</typeparam>
+    /// <param name="list">The List.</param>
+    /// <returns>The last element of the list.</returns>
+    public static T Pop<T>(this List<T> list)
+    {
+        var last = list[list.Count - 1];
+        list.RemoveAt(list.Count - 1);
+        return last;
+    }
+
+    /// <summary>
+    /// Appends an element to a list.
+    /// </summary>
+    /// <typeparam name="T">List type.</typeparam>
+    /// <param name="list">The list.</param>
+    /// <param name="item">The item to add.</param>
+    public static void Push<T>(this List<T> list, T item)
+    {
+        list.Add(item);
+    }
 }

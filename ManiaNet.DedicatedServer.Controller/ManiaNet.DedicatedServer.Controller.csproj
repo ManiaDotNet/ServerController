@@ -92,6 +92,7 @@
     <Compile Include="Plugins\Extensibility\Manialink\IManialinkProvider.cs" />
     <Compile Include="Plugins\LocalRecords.cs" />
     <Compile Include="Plugins\ManialinkDisplayManager.cs" />
+    <Compile Include="Plugins\PermissionManager.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="ServerController.cs" />
     <Compile Include="GlobalSuppressions.cs" />
