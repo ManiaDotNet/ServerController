@@ -10,6 +10,21 @@ public static class Util
     private static readonly DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0);
 
     /// <summary>
+    /// Appends the item to the end of the source IEnumerable.
+    /// </summary>
+    /// <typeparam name="TSource">The type of the items in the IEnumerable.</typeparam>
+    /// <param name="source">The main Sequence of items.</param>
+    /// <param name="item">The item to append to the main Sequence.</param>
+    /// <returns>The source Sequence with the item appended to it.</returns>
+    public static IEnumerable<TSource> Append<TSource>(this IEnumerable<TSource> source, TSource item)
+    {
+        foreach (var sourceItem in source)
+            yield return sourceItem;
+
+        yield return item;
+    }
+
+    /// <summary>
     /// Converts a long Unix TimeStamp into a DateTime.
     /// </summary>
     /// <param name="long">The Unix TimeStamp.</param>
@@ -17,16 +32,6 @@ public static class Util
     public static DateTime FromUnixTimeStampToDateTime(this long @long)
     {
         return unixEpoch.AddSeconds(@long);
-    }
-
-    /// <summary>
-    /// Converts a DateTime into a long Unix TimeStamp.
-    /// </summary>
-    /// <param name="dateTime">The DateTime.</param>
-    /// <returns>The long Unix TimeStamp representing the same TimeStamp.</returns>
-    public static long ToUnixTimeStamp(this DateTime dateTime)
-    {
-        return (long)(dateTime - unixEpoch).TotalSeconds;
     }
 
     /// <summary>
@@ -51,5 +56,15 @@ public static class Util
     public static void Push<T>(this List<T> list, T item)
     {
         list.Add(item);
+    }
+
+    /// <summary>
+    /// Converts a DateTime into a long Unix TimeStamp.
+    /// </summary>
+    /// <param name="dateTime">The DateTime.</param>
+    /// <returns>The long Unix TimeStamp representing the same TimeStamp.</returns>
+    public static long ToUnixTimeStamp(this DateTime dateTime)
+    {
+        return (long)(dateTime - unixEpoch).TotalSeconds;
     }
 }
