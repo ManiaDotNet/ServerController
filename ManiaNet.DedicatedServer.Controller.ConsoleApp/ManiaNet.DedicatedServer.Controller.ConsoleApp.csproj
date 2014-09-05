@@ -44,9 +44,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\ManiaNet.DedicatedServer.dll</HintPath>
     </Reference>
-    <Reference Include="XmlRpc, Version=2.1.5351.40265, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="XmlRpc, Version=2.1.5352.29245, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\XmlRpc.2.1\lib\net45\XmlRpc.dll</HintPath>
+      <HintPath>..\packages\XmlRpc.2.1.1\lib\net45\XmlRpc.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

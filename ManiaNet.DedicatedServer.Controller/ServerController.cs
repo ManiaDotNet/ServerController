@@ -3,6 +3,7 @@ using ManiaNet.DedicatedServer.Controller.Configuration;
 using ManiaNet.DedicatedServer.Controller.Plugins;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Manialink;
+using ManiaNet.DedicatedServer.Controller.Plugins.ManialinkDisplayManager;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using ManiaNet.DedicatedServer.XmlRpc.Structs;
 using ManiaNet.ManiaPlanet.WebServices;
@@ -93,17 +94,19 @@ namespace ManiaNet.DedicatedServer.Controller
             Database = new SQLiteConnection("Data Source=" + config.DatabasePath, true);
             Database.Open();
 
+            WebServicesClient = new CombiClient(config.WebServicesLogin, config.WebServicesPassword);
+
             Configuration = config;
 
             RegisterCommand("plugins", listPlugins);
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.Controller.ServerController"/> class with the given XmlRpc client and the config loaded from disk/default.
+        /// Creates a new instance of the <see cref="ManiaNet.DedicatedServer.Controller.ServerController"/> class with the given XmlRpc client and the default config.
         /// </summary>
         /// <param name="xmlRpcClient">The client used to communicate with the server.</param>
         public ServerController([NotNull] IXmlRpcClient xmlRpcClient)
-            : this(xmlRpcClient, new ServerControllerConfig.Builder().Config)
+            : this(xmlRpcClient, new ServerControllerConfig())
         { }
 
         /// <summary>
@@ -129,7 +132,7 @@ namespace ManiaNet.DedicatedServer.Controller
 
             var response = awaitResponse(methodHandle, timeout);
 
-            if (string.IsNullOrEmpty(response))
+            if (string.IsNullOrWhiteSpace(response))
                 return false;
 
             try
@@ -198,7 +201,7 @@ namespace ManiaNet.DedicatedServer.Controller
 
         private bool authenticate()
         {
-            var methodCall = new Authenticate(Configuration.Login, Configuration.Password);
+            var methodCall = new Authenticate(Configuration.DedicatedLogin, Configuration.DedicatedPassword);
 
             if (!CallMethod(methodCall, 2000))
                 return false;

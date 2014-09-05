@@ -1,4 +1,5 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Annotations;
+using ManiaNet.DedicatedServer.Controller.Configuration;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Manialink;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using RazorEngine;
@@ -12,7 +13,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 
-namespace ManiaNet.DedicatedServer.Controller.Plugins
+namespace ManiaNet.DedicatedServer.Controller.Plugins.ManialinkDisplayManager
 {
     /// <summary>
     /// The default Manialink Display Manager implementation.
@@ -34,6 +35,8 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
 
         private ServerController controller;
 
+        public ManialinkDisplayManagerConfig Config { get; private set; }
+
         /// <summary>
         /// Gets whether the plugin requires its Run method to be called.
         /// </summary>
@@ -54,10 +57,12 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
             if (!isAssemblyServerController(Assembly.GetCallingAssembly()))
                 return false;
 
+            Config = ConfigLoader.LoadConfigFrom<ManialinkDisplayManagerConfig>("ManialinkDisplayManagerConfig.xml");
+
             this.controller = controller;
 
-            //if (!Configuration.AllowManialinkHiding)
-            //    return true;
+            if (!Config.AllowManialinkHiding)
+                return true;
 
             controller.RegisterCommand("hide", hidePlugins);
             controller.RegisterCommand("show", showPlugins);
@@ -127,10 +132,10 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
 
                 timer.Stop();
 
-                var delay = /*Configuration.ManialinkRefreshInterval - */ (int)timer.ElapsedMilliseconds;
+                var delay = Config.ManialinkRefreshInterval - timer.ElapsedMilliseconds;
 
                 if (delay > 0)
-                    Thread.Sleep(delay);
+                    Thread.Sleep((int)delay);
             }
             // ReSharper disable once FunctionNeverReturns
         }

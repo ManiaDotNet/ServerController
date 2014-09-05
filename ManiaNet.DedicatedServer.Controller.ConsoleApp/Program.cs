@@ -1,4 +1,5 @@
-﻿using ManiaNet.DedicatedServer.Controller.ConsoleApp.Annotations;
+﻿using ManiaNet.DedicatedServer.Controller.Configuration;
+using ManiaNet.DedicatedServer.Controller.ConsoleApp.Annotations;
 using ManiaNet.DedicatedServer.XmlRpc;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ namespace ManiaNet.DedicatedServer.Controller.ConsoleApp
         // ReSharper disable once InconsistentNaming
         private static void Main(string[] args)
         {
+            var serverControllerConfig = ConfigLoader.LoadConfigFrom<ServerControllerConfig>("ServerControllerConfig.xml");
+
             var xmlRpcConnection = new XmlRpcClient(new XmlRpcClient.Config(port: 5001));
 
 #if DEBUG
@@ -19,7 +22,7 @@ namespace ManiaNet.DedicatedServer.Controller.ConsoleApp
             xmlRpcConnection.ServerCallback += (client, content) => Console.WriteLine("Callback:\r\n" + content);
 #endif
 
-            var controller = new ServerController(xmlRpcConnection);
+            var controller = new ServerController(xmlRpcConnection, serverControllerConfig);
 
             if (controller.Start())
                 Console.WriteLine("Controller started successfully.");
