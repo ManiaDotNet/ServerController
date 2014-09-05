@@ -5,7 +5,7 @@ using System;
 
 namespace ManiaNet.DedicatedServer.Controller.Plugins
 {
-    internal class StandardChatInterface : IChatInterface
+    public class StandardChatInterface : IChatInterface
     {
         private ServerController controller;
 

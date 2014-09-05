@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace ManiaNet.DedicatedServer.Controller.Plugins
 {
-    internal class UnknownChatInterfaceException : Exception, ISerializable
+    public class UnknownChatInterfaceException : Exception, ISerializable
     {
         public UnknownChatInterfaceException(string message)
             : base(message) { }
@@ -18,7 +18,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
             : base(info, context) { }
     }
 
-    class ChatInterfacePermissionException : Exception, ISerializable
+    public class ChatInterfacePermissionException : Exception, ISerializable
     {
         public ChatInterfacePermissionException(string message)
             : base(message) { }
@@ -30,7 +30,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
             : base(info, context) { }
     }
 
-    internal class ChatInterfaceManager
+    public class ChatInterfaceManager
     {
         private Dictionary<string, IChatInterface> interfaces = new Dictionary<string, IChatInterface>();
         private Dictionary<string, string> registrars = new Dictionary<string, string>();

@@ -52,6 +52,13 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
         public string WebServicesPassword { get; private set; }
 
         /// <summary>
+        /// Gets the default ChatInterface.
+        /// </summary>
+        [SilverConfigElement(NewLineBefore = true,
+            Comment = "Enter your default chat interface. Set it to 'chat' for the default chat.")]
+        public string DefaultChat { get; private set; }
+
+        /// <summary>
         /// Creates a new instance of the <see cref="ServerControllerConfig"/> with the default values.
         /// </summary>
         public ServerControllerConfig()
@@ -62,6 +69,7 @@ namespace ManiaNet.DedicatedServer.Controller.Configuration
             WebServicesPassword = "ManiaNet";
             DatabasePath = "ManiaNet.db3";
             PluginFolders = new[] { "plugins" };
+            DefaultChat = "chat";
         }
     }
 }

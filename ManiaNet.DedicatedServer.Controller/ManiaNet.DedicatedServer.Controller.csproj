@@ -92,7 +92,6 @@
     <Compile Include="Plugins\Extensibility\Clients\IClientsManager.cs" />
     <Compile Include="Plugins\Extensibility\Manialink\IManialinkDisplayManager.cs" />
     <Compile Include="Plugins\Extensibility\Manialink\IManialinkProvider.cs" />
-    <Compile Include="Plugins\InsufficientPermissionException.cs" />
     <Compile Include="Plugins\LocalRecords.cs" />
     <Compile Include="Plugins\ManialinkDisplayManager\ManialinkDisplayManager.cs" />
     <Compile Include="Plugins\ManialinkDisplayManager\ManialinkDisplayManagerConfig.cs" />

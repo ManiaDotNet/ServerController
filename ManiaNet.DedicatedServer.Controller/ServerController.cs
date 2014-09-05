@@ -57,7 +57,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// <summary>
         /// The ChatInterfaceManager to register and unregister ChatInterfaces.
         /// </summary>
-        public ChatInterfaceManager ChatInterfaceManager;
+        public ChatInterfaceManager ChatInterfaceManager { get; private set; }
 
         /// <summary>
         /// Gets the IChatInterface for the given name.
@@ -116,7 +116,14 @@ namespace ManiaNet.DedicatedServer.Controller
 
             RegisterCommand("plugins", listPlugins);
 
+            // TODO: this.CallMethod(new ChatEnableManualRouting(true, false), 1000);
+            this.PlayerChat += ServerController_PlayerChat;
             this.ChatInterfaceManager.RegisterInterface("chat", new StandardChatInterface(this));
+        }
+
+        void ServerController_PlayerChat(ServerController sender, ManiaPlanetPlayerChat methodCall)
+        {
+            this.Chat(Configuration.DefaultChat).Send(methodCall.Text, this.ClientsManager.GetClientInfo(methodCall.ClientLogin));
         }
 
         /// <summary>
