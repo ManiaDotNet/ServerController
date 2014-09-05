@@ -84,16 +84,20 @@
   <ItemGroup>
     <Compile Include="Configuration\ConfigLoader.cs" />
     <Compile Include="Configuration\ServerControllerConfig.cs" />
+    <Compile Include="ChatInterfaceManager.cs" />
     <Compile Include="Plugins\ClientsManager.cs" />
     <Compile Include="Plugins\Client.cs" />
+    <Compile Include="Plugins\Extensibility\Chat\IChatInterface.cs" />
     <Compile Include="Plugins\Extensibility\Clients\IClient.cs" />
     <Compile Include="Plugins\Extensibility\Clients\IClientsManager.cs" />
     <Compile Include="Plugins\Extensibility\Manialink\IManialinkDisplayManager.cs" />
     <Compile Include="Plugins\Extensibility\Manialink\IManialinkProvider.cs" />
+    <Compile Include="Plugins\InsufficientPermissionException.cs" />
     <Compile Include="Plugins\LocalRecords.cs" />
     <Compile Include="Plugins\ManialinkDisplayManager\ManialinkDisplayManager.cs" />
     <Compile Include="Plugins\ManialinkDisplayManager\ManialinkDisplayManagerConfig.cs" />
     <Compile Include="Plugins\PermissionManager.cs" />
+    <Compile Include="Plugins\StandardChatInterface.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="ServerController.cs" />
     <Compile Include="GlobalSuppressions.cs" />

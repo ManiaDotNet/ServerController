@@ -1,6 +1,7 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Annotations;
 using ManiaNet.DedicatedServer.Controller.Configuration;
 using ManiaNet.DedicatedServer.Controller.Plugins;
+using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Chat;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Manialink;
 using ManiaNet.DedicatedServer.Controller.Plugins.ManialinkDisplayManager;
@@ -54,6 +55,21 @@ namespace ManiaNet.DedicatedServer.Controller
         public SQLiteConnection Database { get; private set; }
 
         /// <summary>
+        /// The ChatInterfaceManager to register and unregister ChatInterfaces.
+        /// </summary>
+        public ChatInterfaceManager ChatInterfaceManager;
+
+        /// <summary>
+        /// Gets the IChatInterface for the given name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>The requested IChatInterface if registered.</returns>
+        public IChatInterface Chat(string name = "chat")
+        {
+            return this.ChatInterfaceManager.Get(name);
+        }
+
+        /// <summary>
         /// Gets the Manialink Display Manager used by the Controller.
         /// </summary>
         [NotNull, UsedImplicitly]
@@ -99,6 +115,8 @@ namespace ManiaNet.DedicatedServer.Controller
             Configuration = config;
 
             RegisterCommand("plugins", listPlugins);
+
+            this.ChatInterfaceManager.RegisterInterface("chat", new StandardChatInterface(this));
         }
 
         /// <summary>
