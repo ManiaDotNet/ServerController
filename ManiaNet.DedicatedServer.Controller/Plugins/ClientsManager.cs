@@ -20,7 +20,8 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         // 1 day
         private const uint fetchMaxAgeSeconds = 86400;
 
-        private const string tableDDL = @"CREATE TABLE IF NOT EXISTS Clients (
+        private const string tableDDL =
+@"CREATE TABLE IF NOT EXISTS Clients (
     Login    VARCHAR( 250 )  PRIMARY KEY
                              NOT NULL
                              UNIQUE,
@@ -40,7 +41,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// <summary>
         /// Gets the <see cref="Client"/>s that are currently connected to the Server.
         /// </summary>
-        public IEnumerable<Client> CurrentClients
+        public IEnumerable<IClient> CurrentClients
         {
             get { return currentClients.ToArray(); }
         }
@@ -54,11 +55,16 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         }
 
         /// <summary>
+        /// Gets the <see cref="IClient"/> information for the account hosting the server.
+        /// </summary>
+        public IClient ServerHost { get; private set; }
+
+        /// <summary>
         /// Gets the most recent <see cref="Client"/> information. Null when there's information missing from the fetched info.
         /// </summary>
         /// <param name="login">The login of the Client that the information is wanted for.</param>
         /// <returns>The most recent <see cref="Client"/> information. Null when there's information missing from the fetched info.</returns>
-        public Client FetchClientInfo(string login)
+        public IClient FetchClientInfo(string login)
         {
             var wsClient = controller.WebServicesClient.Players.GetInfoAsync(login).Result;
 
@@ -79,7 +85,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// </summary>
         /// <param name="login">The login of the Client that the information is wanted for.</param>
         /// <returns>The <see cref="Client"/> information.</returns>
-        public Client GetClientInfo(string login)
+        public IClient GetClientInfo(string login)
         {
             if (string.IsNullOrWhiteSpace(login))
                 return null;
@@ -113,7 +119,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// </summary>
         /// <param name="sqlQuery">The WHERE part of the SQL-Query. Query snippet will be used like: SELECT * FROM `Clients` WHERE sqlQuery</param>
         /// <returns>The <see cref="Client"/>s from the Databse that match the given SQL-Query.</returns>
-        public IEnumerable<Client> GetClientsWhere(string sqlQuery)
+        public IEnumerable<IClient> GetClientsWhere(string sqlQuery)
         {
             using (var command = controller.Database.CreateCommand())
             {
@@ -221,7 +227,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         [CanBeNull, UsedImplicitly]
         private Client getClientInfo([NotNull] string login, [NotNull] string nickName)
         {
-            var client = GetClientInfo(login);
+            var client = (Client)GetClientInfo(login);
 
             if (client == null)
                 return null;
@@ -245,7 +251,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
             if ((DateTime.Now - dbClient.Fetched).TotalSeconds < fetchMaxAgeSeconds)
                 return dbClient;
 
-            var fetchedClient = FetchClientInfo(dbClient.Login);
+            var fetchedClient = (Client)FetchClientInfo(dbClient.Login);
 
             return fetchedClient ?? dbClient;
         }
@@ -286,8 +292,11 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
             if (getPlayerListCall.HadFault)
                 return false;
 
+            // Server Account is always first.
+            var serverHost = getPlayerListCall.ReturnValue.First().Value;
+            ServerHost = getClientInfo(serverHost.Login, serverHost.NickName);
+
             currentClients.Clear();
-            // TODO: Find out if the server account is always the first...
             currentClients.AddRange(getPlayerListCall.ReturnValue.Skip(1).Select(clientInfo => getClientInfo(clientInfo.Value.Login, clientInfo.Value.NickName)));
 
             return true;
