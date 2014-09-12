@@ -8,16 +8,19 @@ using ManiaNet.DedicatedServer.Controller.Plugins.ManialinkDisplayManager;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using ManiaNet.DedicatedServer.XmlRpc.Structs;
 using ManiaNet.ManiaPlanet.WebServices;
+using Mono.Data.Sqlite;
 using SharpPlugins;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data.SQLite;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 using XmlRpc;
 using XmlRpc.Methods;
@@ -37,6 +40,12 @@ namespace ManiaNet.DedicatedServer.Controller
         private List<Thread> pluginThreads;
 
         /// <summary>
+        /// The ChatInterfaceManager to register and unregister ChatInterfaces.
+        /// </summary>
+        [NotNull, UsedImplicitly]
+        public ChatInterfaceManager ChatInterfaceManager { get; private set; }
+
+        /// <summary>
         /// Gets the Clients Manager used by the Controller.
         /// </summary>
         [NotNull, UsedImplicitly]
@@ -52,22 +61,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// Gets the connection to the SQLite database.
         /// </summary>
         [NotNull, UsedImplicitly]
-        public SQLiteConnection Database { get; private set; }
-
-        /// <summary>
-        /// The ChatInterfaceManager to register and unregister ChatInterfaces.
-        /// </summary>
-        public ChatInterfaceManager ChatInterfaceManager { get; private set; }
-
-        /// <summary>
-        /// Gets the IChatInterface for the given name.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns>The requested IChatInterface if registered.</returns>
-        public IChatInterface Chat(string name = "chat")
-        {
-            return this.ChatInterfaceManager.Get(name);
-        }
+        public SqliteConnection Database { get; private set; }
 
         /// <summary>
         /// Gets the Manialink Display Manager used by the Controller.
@@ -107,7 +101,7 @@ namespace ManiaNet.DedicatedServer.Controller
             this.xmlRpcClient.MethodResponse += xmlRpcClient_MethodResponse;
             this.xmlRpcClient.ServerCallback += xmlRpcClient_ServerCallback;
 
-            Database = new SQLiteConnection("Data Source=" + config.DatabasePath, true);
+            Database = new SqliteConnection("Data Source=" + config.DatabasePath + ";Version=3;");
             Database.Open();
 
             WebServicesClient = new CombiClient(config.WebServicesLogin, config.WebServicesPassword);
@@ -116,14 +110,9 @@ namespace ManiaNet.DedicatedServer.Controller
 
             RegisterCommand("plugins", listPlugins);
 
-            // TODO: this.CallMethod(new ChatEnableManualRouting(true, false), 1000);
-            this.PlayerChat += ServerController_PlayerChat;
-            this.ChatInterfaceManager.RegisterInterface("chat", new StandardChatInterface(this));
-        }
-
-        void ServerController_PlayerChat(ServerController sender, ManiaPlanetPlayerChat methodCall)
-        {
-            this.Chat(Configuration.DefaultChat).Send(methodCall.Text, this.ClientsManager.GetClientInfo(methodCall.ClientLogin));
+            PlayerChat += ServerController_PlayerChat;
+            ChatInterfaceManager = new ChatInterfaceManager();
+            ChatInterfaceManager.RegisterInterface("chat", new StandardChatInterface(this));
         }
 
         /// <summary>
@@ -147,7 +136,25 @@ namespace ManiaNet.DedicatedServer.Controller
         [UsedImplicitly]
         public bool CallMethod<TReturn, TReturnBase>([NotNull] XmlRpcMethodCall<TReturn, TReturnBase> methodCall, int timeout) where TReturn : XmlRpcType<TReturnBase>, new()
         {
-            var methodHandle = xmlRpcClient.SendRequest(methodCall.GenerateCallXml().ToString());
+            var requestBuilder = new StringBuilder();
+            var writer = XmlWriter.Create(requestBuilder, new XmlWriterSettings { Encoding = Encoding.ASCII });
+
+            methodCall.GenerateCallXml().Save(writer);
+            writer.Flush();
+
+            var requestChars = new char[requestBuilder.Length];
+            requestBuilder.CopyTo(0, requestChars, 0, requestBuilder.Length);
+
+            var asciiRequestBilder = new StringBuilder();
+            foreach (var c in requestChars)
+            {
+                if (c < 128)
+                    asciiRequestBilder.Append(c);
+                else
+                    asciiRequestBilder.Append(WebUtility.HtmlEncode(c.ToString()));
+            }
+
+            var methodHandle = xmlRpcClient.SendRequest(asciiRequestBilder.ToString());
 
             if (timeout <= 0)
                 return true;
@@ -206,6 +213,11 @@ namespace ManiaNet.DedicatedServer.Controller
                 return false;
 
             Console.WriteLine("Got Server Options.");
+
+            if (!CallMethod(new ChatEnableManualRouting(true, false), 2000))
+                return false;
+
+            Console.WriteLine("Enabled Manual Chat Routing.");
 
             loadPlugins();
             startPlugins();
@@ -484,6 +496,11 @@ namespace ManiaNet.DedicatedServer.Controller
             response.Remove(response.Length - 2, 2);
 
             CallMethod(new ChatSendServerMessageToId(response.ToString(), playerChatCall.ClientId), 0);
+        }
+
+        private void ServerController_PlayerChat(ServerController sender, ManiaPlanetPlayerChat methodCall)
+        {
+            this.ChatInterfaceManager.Get(Configuration.DefaultChat).Send(methodCall.Text, this.ClientsManager.GetClientInfo(methodCall.ClientLogin));
         }
 
         private bool setupServerOptions()

@@ -1,6 +1,7 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Annotations;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
 using ManiaNet.ManiaPlanet.WebServices;
+using Mono.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -71,15 +72,15 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// <summary>
         /// Creates a new instance of the <see cref="Client"/> class with the given NameValueCollection from a database reader.
         /// </summary>
-        /// <param name="nameValueCollection">The information from the database.</param>
-        internal Client(NameValueCollection nameValueCollection)
+        /// <param name="reader">The reader from the database.</param>
+        internal Client(SqliteDataReader reader)
         {
-            Fetched = long.Parse(nameValueCollection["Fetched"]).FromUnixTimeStampToDateTime();
-            Id = uint.Parse(nameValueCollection["Id"]);
-            Login = nameValueCollection["Login"];
-            Nickname = nameValueCollection["Nickname"];
-            ZoneId = uint.Parse(nameValueCollection["ZoneId"]);
-            ZonePath = nameValueCollection["ZonePath"];
+            Fetched = ((long)reader["Fetched"]).FromUnixTimeStampToDateTime();
+            Id = (uint)reader["Id"];
+            Login = (string)reader["Login"];
+            Nickname = (string)reader["Nickname"];
+            ZoneId = (uint)reader["ZoneId"];
+            ZonePath = (string)reader["ZonePath"];
         }
     }
 }

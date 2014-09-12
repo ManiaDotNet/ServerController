@@ -1,6 +1,7 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Annotations;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
+using Mono.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -97,8 +98,8 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
 
                 if (reader.HasRows)
                 {
-                    reader.Read();
-                    return getDbClientOrFetched(reader.GetValues());
+                    if (reader.NextResult())
+                        return getDbClientOrFetched(reader);
                 }
             }
 
@@ -126,8 +127,8 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
                 command.CommandText = "SELECT * FROM `Clients` WHERE " + sqlQuery;
                 using (var reader = command.ExecuteReader())
                 {
-                    while (reader.Read())
-                        yield return getDbClientOrFetched(reader.GetValues());
+                    while (reader.NextResult())
+                        yield return getDbClientOrFetched(reader);
                 }
             }
         }
@@ -244,7 +245,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// </summary>
         /// <param name="nameValueCollection">The collection of values from the db.</param>
         /// <returns>The <see cref="Client"/> information.</returns>
-        private Client getDbClientOrFetched(NameValueCollection nameValueCollection)
+        private Client getDbClientOrFetched(SqliteDataReader nameValueCollection)
         {
             var dbClient = new Client(nameValueCollection);
 
