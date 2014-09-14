@@ -16,11 +16,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
 
         public void Send(string message, IClient sender = null, object image = null)
         {
-            string msg = message;
-            if (sender != null)
-                msg = String.Format("$s[$<$s{0}$>] {1}$z", sender.Nickname.Replace("$s", ""), message);
-            var chatmethod = new ChatSendServerMessage(msg);
-            controller.CallMethod(chatmethod, 1000);
+            controller.CallMethod(new ChatSendServerMessage(formatMessage(sender, message)), 0);
         }
 
         public void Send(string message, string sender, object image = null)
@@ -30,12 +26,19 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
 
         public void SendTo(string message, string recipient, IClient sender = null, object image = null)
         {
-            string msg = message;
-            if (sender != null)
-                msg = String.Format("$s[$<$s{0}$>] {1}$z", sender.Nickname.Replace("$s", ""), message);
             // TODO: var chatmethod = new ChatSendServerMessageToLogin(msg, recipient);
-            var chatmethod = new ChatSendServerMessageToId(msg, (int)controller.ClientsManager.GetClientInfo(recipient).Id);
-            controller.CallMethod(chatmethod, 1000);
+            controller.CallMethod(new ChatSendServerMessageToId(formatMessage(sender, message),
+                (int)controller.ClientsManager.GetClientInfo(recipient).Id), 0);
+        }
+
+        private static string formatMessage(IClient sender, string message)
+        {
+            if (sender != null)
+                return string.Format("$z$s[$<$fff{0}$>] {1}",
+                    sender.Nickname.Contains("$s") ? sender.Nickname.Remove(sender.Nickname.IndexOf("$s"), 2) : sender.Nickname,
+                    message);
+
+            return message;
         }
     }
 }

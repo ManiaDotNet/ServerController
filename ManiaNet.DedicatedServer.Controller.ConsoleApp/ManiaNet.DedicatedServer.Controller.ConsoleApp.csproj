@@ -35,8 +35,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ManiaNet.DedicatedServer">
-      <HintPath>..\packages\ManiaNet.DedicatedServer.1.0.3\lib\net45\ManiaNet.DedicatedServer.dll</HintPath>
+    <Reference Include="ManiaNet.DedicatedServer, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ManiaNet.DedicatedServer.1.1.0\lib\net45\ManiaNet.DedicatedServer.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

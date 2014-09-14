@@ -57,9 +57,9 @@
     </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="XmlRpc, Version=2.0.5343.36861, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="XmlRpc, Version=2.1.5352.29245, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\XmlRpc.2.0\lib\XmlRpc.dll</HintPath>
+      <HintPath>..\packages\XmlRpc.2.1.1\lib\net45\XmlRpc.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Choose>

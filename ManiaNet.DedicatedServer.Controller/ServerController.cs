@@ -136,25 +136,7 @@ namespace ManiaNet.DedicatedServer.Controller
         [UsedImplicitly]
         public bool CallMethod<TReturn, TReturnBase>([NotNull] XmlRpcMethodCall<TReturn, TReturnBase> methodCall, int timeout) where TReturn : XmlRpcType<TReturnBase>, new()
         {
-            var requestBuilder = new StringBuilder();
-            var writer = XmlWriter.Create(requestBuilder, new XmlWriterSettings { Encoding = Encoding.ASCII });
-
-            methodCall.GenerateCallXml().Save(writer);
-            writer.Flush();
-
-            var requestChars = new char[requestBuilder.Length];
-            requestBuilder.CopyTo(0, requestChars, 0, requestBuilder.Length);
-
-            var asciiRequestBilder = new StringBuilder();
-            foreach (var c in requestChars)
-            {
-                if (c < 128)
-                    asciiRequestBilder.Append(c);
-                else
-                    asciiRequestBilder.Append(WebUtility.HtmlEncode(c.ToString()));
-            }
-
-            var methodHandle = xmlRpcClient.SendRequest(asciiRequestBilder.ToString());
+            var methodHandle = xmlRpcClient.SendRequest(methodCall.GenerateCallXml().ToString());
 
             if (timeout <= 0)
                 return true;
