@@ -31,7 +31,8 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
         /// The main method of the plugin.
         /// Gets run in its own thread by the controller and should stop gracefully on a <see cref="System.Threading.ThreadAbortException"/>.
         /// </summary>
-        public abstract void Run();
+        public virtual void Run()
+        { }
 
         /// <summary>
         /// Gets called when the plugin is unloaded.

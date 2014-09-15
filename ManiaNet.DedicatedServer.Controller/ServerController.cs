@@ -1,9 +1,9 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Annotations;
 using ManiaNet.DedicatedServer.Controller.Configuration;
 using ManiaNet.DedicatedServer.Controller.Plugins;
-using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Chat;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Manialink;
+using ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider;
 using ManiaNet.DedicatedServer.Controller.Plugins.ManialinkDisplayManager;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using ManiaNet.DedicatedServer.XmlRpc.Structs;
@@ -14,13 +14,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
 using XmlRpc;
 using XmlRpc.Methods;
@@ -79,6 +76,12 @@ namespace ManiaNet.DedicatedServer.Controller
         }
 
         /// <summary>
+        /// Gets the Records Provider Manager used by the Controller.
+        /// </summary>
+        [NotNull, UsedImplicitly]
+        public RecordsProviderManager RecordsProviderManager { get; private set; }
+
+        /// <summary>
         /// Gets the Server Options.
         /// </summary>
         [NotNull, UsedImplicitly]
@@ -113,6 +116,8 @@ namespace ManiaNet.DedicatedServer.Controller
             PlayerChat += ServerController_PlayerChat;
             ChatInterfaceManager = new ChatInterfaceManager();
             ChatInterfaceManager.RegisterInterface("chat", new StandardChatInterface(this));
+
+            RecordsProviderManager = new RecordsProviderManager();
         }
 
         /// <summary>
@@ -590,7 +595,7 @@ namespace ManiaNet.DedicatedServer.Controller
 
             var pluginTypes = PluginLoader.LoadPluginsFromFolders<ControllerPlugin>(Configuration.PluginFolders);
 
-            plugins = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes).Select(plugin =>
+            plugins = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes.Append(typeof(LocalRecordsProvider))).Select(plugin =>
                                                                                             {
                                                                                                 Console.WriteLine(PluginBase.GetName(plugin.GetType()) + " ...");
 

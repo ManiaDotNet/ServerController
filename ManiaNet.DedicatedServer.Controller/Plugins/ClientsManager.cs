@@ -4,7 +4,6 @@ using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using Mono.Data.Sqlite;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 
@@ -166,13 +165,6 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
 
             return true;
         }
-
-        /// <summary>
-        /// The main method of the plugin.
-        /// Gets run in its own thread by the controller and should stop gracefully on a <see cref="System.Threading.ThreadAbortException"/>.
-        /// </summary>
-        public override void Run()
-        { }
 
         /// <summary>
         /// Gets called when the plugin is unloaded.

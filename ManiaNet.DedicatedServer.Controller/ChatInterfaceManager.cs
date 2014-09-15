@@ -6,10 +6,10 @@ using System.Runtime.Serialization;
 
 namespace ManiaNet.DedicatedServer.Controller.Plugins
 {
-    public class ChatInterfaceManager
+    public sealed class ChatInterfaceManager
     {
-        private Dictionary<string, IChatInterface> interfaces = new Dictionary<string, IChatInterface>();
-        private Dictionary<string, string> registrars = new Dictionary<string, string>();
+        private readonly Dictionary<string, IChatInterface> interfaces = new Dictionary<string, IChatInterface>();
+        private readonly Dictionary<string, Assembly> registrars = new Dictionary<string, Assembly>();
 
         /// <summary>
         /// Returns the IChatInterface registered for the given name.
@@ -38,7 +38,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
                 throw new ChatInterfacePermissionException(String.Format("The ChatInterface {0} is already registered.", name));
 
             this.interfaces.Add(name, chatinterface);
-            this.registrars.Add(name, Assembly.GetCallingAssembly().FullName);
+            this.registrars.Add(name, Assembly.GetCallingAssembly());
             return true;
         }
 
@@ -54,7 +54,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
             if (!interfaces.ContainsKey(name))
                 throw new UnknownChatInterfaceException(String.Format("{0} is not a registered ChatInterface.", name));
 
-            if (registrars[name] != Assembly.GetCallingAssembly().FullName)
+            if (registrars[name] != Assembly.GetCallingAssembly())
                 throw new ChatInterfacePermissionException(String.Format("You cannot unregister a ChatInterface you didn't register yourself."));
 
             this.interfaces.Remove(name);

@@ -97,12 +97,16 @@
     <Compile Include="Plugins\Extensibility\Clients\IClientsManager.cs" />
     <Compile Include="Plugins\Extensibility\Manialink\IManialinkDisplayManager.cs" />
     <Compile Include="Plugins\Extensibility\Manialink\IManialinkProvider.cs" />
-    <Compile Include="Plugins\LocalRecords.cs" />
+    <Compile Include="Plugins\Extensibility\Records\IRecord.cs" />
+    <Compile Include="Plugins\Extensibility\Records\IRecordsProvider.cs" />
+    <Compile Include="Plugins\LocalRecordsProvider\LocalRecord.cs" />
+    <Compile Include="Plugins\LocalRecordsProvider\LocalRecordsProvider.cs" />
     <Compile Include="Plugins\ManialinkDisplayManager\ManialinkDisplayManager.cs" />
     <Compile Include="Plugins\ManialinkDisplayManager\ManialinkDisplayManagerConfig.cs" />
     <Compile Include="Plugins\PermissionManager.cs" />
     <Compile Include="Plugins\StandardChatInterface.cs" />
     <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="RecordsProviderManager.cs" />
     <Compile Include="ServerController.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Plugins\ControllerPlugin.cs" />
@@ -116,9 +120,7 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Plugins\Extensibility\Records\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
