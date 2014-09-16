@@ -3,46 +3,32 @@ using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
-namespace ManiaNet.DedicatedServer.Controller.Plugins
+namespace ManiaNet.DedicatedServer.Controller
 {
     /// <summary>
-    /// The default Permission Manager implementation.
+    /// Manages the permissions that the different Clients/Groups have on the Server and in the Web Interface.
     /// </summary>
     [UsedImplicitly]
-    [RegisterPlugin("controller::PermissionManager", "proni, Banane9", "Default Permission Manager", "1.0",
-        "The default implementation for no interface, yet.")]
-    public class PermissionManager : ControllerPlugin
+    public class PermissionManager
     {
         private ServerController controller;
 
         private Dictionary<string, List<string>> permissionCache;
 
         /// <summary>
-        /// Gets whether the plugin requires its Run method to be called.
+        /// Creates a new instance of the <see cref="PermissionManager"/> class for the given <see cref="ServerController"/>.
         /// </summary>
-        public override bool RequiresRun
+        /// <param name="controller">The controller loading it.</param>
+        public PermissionManager(ServerController controller)
         {
-            get { return false; }
-        }
-
-        /// <summary>
-        /// Gets called when the plugin is loaded.
-        /// Use this to add your methods to the controller's events and load your saved data.
-        /// </summary>
-        /// <param name="controller">The controller loading the plugin.</param>
-        /// <returns>Whether it loaded successfully or not.</returns>
-        public override bool Load(ServerController controller)
-        {
-            if (!isAssemblyServerController(Assembly.GetCallingAssembly()))
-                return false;
-
             this.controller = controller;
-            bool setupSuccess = true;
+
             permissionCache = new Dictionary<string, List<string>>();
-            setupSuccess &= controller.RegisterCommand("perm", chatCommand);
+
+            controller.RegisterCommand("perm", chatCommand);
+
             using (var command = controller.Database.CreateCommand())
             {
                 command.CommandText =
@@ -71,25 +57,6 @@ CREATE TABLE IF NOT EXISTS `permissions_targets` (
 );";
                 command.ExecuteNonQuery();
             }
-
-            return setupSuccess;
-        }
-
-        /// <summary>
-        /// The main method of the plugin.
-        /// Gets run in its own thread by the controller and should stop gracefully on a <see cref="System.Threading.ThreadAbortException"/>.
-        /// </summary>
-        public override void Run()
-        { }
-
-        /// <summary>
-        /// Gets called when the plugin is unloaded.
-        /// Use this to save your data.
-        /// </summary>
-        /// <returns>Whether it unloaded successfully or not.</returns>
-        public override bool Unload()
-        {
-            return isAssemblyServerController(Assembly.GetCallingAssembly());
         }
 
         /// <summary>

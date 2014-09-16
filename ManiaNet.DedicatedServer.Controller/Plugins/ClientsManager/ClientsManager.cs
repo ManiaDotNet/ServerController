@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace ManiaNet.DedicatedServer.Controller.Plugins
+namespace ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager
 {
     /// <summary>
     /// The default Clients Manager implementation.

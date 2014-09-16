@@ -10,7 +10,12 @@ using System.Reflection;
 
 namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
 {
-    [RegisterPlugin("controller::LocalRecordsProvider")]
+    /// <summary>
+    /// The default Local Records Provider implementation.
+    /// </summary>
+    [UsedImplicitly]
+    [RegisterPlugin("controller::LocalRecordsProvider", "proni, Banane9", "Local Records Provider", "1.0",
+        "The default Local Records Provider.")]
     public sealed class LocalRecordsProvider : ControllerPlugin, IRecordsProvider
     {
         private const string tableDDL =
@@ -139,7 +144,11 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
 
             currentMap = getCurrentMapInfoCall.ReturnValue;
 
+            // Has to be called with the UId, because otherwise it'd return the old currentRecords.
             currentRecords = GetRecords(currentMap.UId).Cast<LocalRecord>().ToDictionary(record => record.Player.Login);
+
+            if (!controller.RecordsProviderManager.RegisterProvider("local", this))
+                return false;
 
             return true;
         }

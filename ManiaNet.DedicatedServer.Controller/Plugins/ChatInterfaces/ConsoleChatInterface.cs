@@ -1,19 +1,18 @@
-﻿using System;
+﻿using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Chat;
+using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Chat;
-using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
 using System.Text.RegularExpressions;
 
-namespace ManiaNet.DedicatedServer.Controller.Plugins
+namespace ManiaNet.DedicatedServer.Controller.Plugins.ChatInterfaces
 {
-    class ConsoleChatInterface: IChatInterface
+    internal class ConsoleChatInterface : IChatInterface
     {
         public void Send(string message, IClient sender = null, object image = null)
         {
-            if (image == null){
+            if (image == null)
+            {
                 PrintColored(formatMessage(sender, message));
             }
             else if (image.GetType() == typeof(string))
@@ -23,14 +22,16 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins
                     case "info":
                         Console.ForegroundColor = ConsoleColor.DarkGreen;
                         break;
+
                     case "warn":
                         Console.ForegroundColor = ConsoleColor.DarkYellow;
                         break;
+
                     case "error":
                         Console.ForegroundColor = ConsoleColor.DarkRed;
                         break;
                 }
-                message = formatMessage(sender, message, "lfc", true);                
+                message = formatMessage(sender, message, "lfc", true);
                 Console.WriteLine(message);
                 Console.ResetColor();
             }

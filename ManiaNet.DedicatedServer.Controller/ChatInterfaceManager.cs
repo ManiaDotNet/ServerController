@@ -6,6 +6,9 @@ using System.Runtime.Serialization;
 
 namespace ManiaNet.DedicatedServer.Controller.Plugins
 {
+    /// <summary>
+    /// Manages the Chat Interfaces available from the Controller.
+    /// </summary>
     public sealed class ChatInterfaceManager
     {
         private readonly Dictionary<string, IChatInterface> interfaces = new Dictionary<string, IChatInterface>();

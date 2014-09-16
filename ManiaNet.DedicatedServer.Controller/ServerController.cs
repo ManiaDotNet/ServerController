@@ -1,6 +1,8 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Annotations;
 using ManiaNet.DedicatedServer.Controller.Configuration;
 using ManiaNet.DedicatedServer.Controller.Plugins;
+using ManiaNet.DedicatedServer.Controller.Plugins.ChatInterfaces;
+using ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Manialink;
 using ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider;

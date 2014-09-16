@@ -4,10 +4,9 @@ using ManiaNet.ManiaPlanet.WebServices;
 using Mono.Data.Sqlite;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 
-namespace ManiaNet.DedicatedServer.Controller.Plugins
+namespace ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager
 {
     /// <summary>
     /// Stores information about a Client.

@@ -3,7 +3,7 @@ using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using System;
 
-namespace ManiaNet.DedicatedServer.Controller.Plugins
+namespace ManiaNet.DedicatedServer.Controller.Plugins.ChatInterfaces
 {
     public class StandardChatInterface : IChatInterface
     {
