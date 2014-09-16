@@ -116,6 +116,7 @@ namespace ManiaNet.DedicatedServer.Controller
             PlayerChat += ServerController_PlayerChat;
             ChatInterfaceManager = new ChatInterfaceManager();
             ChatInterfaceManager.RegisterInterface("chat", new StandardChatInterface(this));
+            ChatInterfaceManager.RegisterInterface("console", new ConsoleChatInterface());
 
             RecordsProviderManager = new RecordsProviderManager();
         }

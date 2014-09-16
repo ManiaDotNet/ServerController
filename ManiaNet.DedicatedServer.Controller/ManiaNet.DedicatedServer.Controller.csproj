@@ -92,6 +92,7 @@
     <Compile Include="ChatInterfaceManager.cs" />
     <Compile Include="Plugins\ClientsManager.cs" />
     <Compile Include="Plugins\Client.cs" />
+    <Compile Include="Plugins\ConsoleChatInterface.cs" />
     <Compile Include="Plugins\Extensibility\Chat\IChatInterface.cs" />
     <Compile Include="Plugins\Extensibility\Clients\IClient.cs" />
     <Compile Include="Plugins\Extensibility\Clients\IClientsManager.cs" />
