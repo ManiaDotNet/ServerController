@@ -15,7 +15,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Records
         /// Gets the times in ms or the scores for the checkpoints in order from first to last.
         /// </summary>
         [NotNull, UsedImplicitly]
-        IEnumerable<int> CheckpointTimesOrScores { get; }
+        IEnumerable<long> CheckpointTimesOrScores { get; }
 
         /// <summary>
         /// Gets the UId of the map that this record is for.
@@ -33,6 +33,6 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Records
         /// Gets the time in ms or the score of the Player achieved.
         /// </summary>
         [UsedImplicitly]
-        int TimeOrScore { get; }
+        long TimeOrScore { get; }
     }
 }

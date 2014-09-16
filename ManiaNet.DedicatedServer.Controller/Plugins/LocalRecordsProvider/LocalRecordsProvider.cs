@@ -24,7 +24,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
     CheckpointTimesOrScores TEXT               NOT NULL
 );";
 
-        private readonly Dictionary<string, List<int>> currentCheckpoints = new Dictionary<string, List<int>>();
+        private readonly Dictionary<string, List<long>> currentCheckpoints = new Dictionary<string, List<long>>();
         private ServerController controller;
         private int currentGameMode = -1;
         private MapInfoStruct currentMap;
@@ -44,9 +44,12 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
         /// <returns>The <see cref="IRecord"/>s for the map.</returns>
         public IEnumerable<IRecord> GetRecords(string map = "", uint offset = 0, uint length = 0)
         {
+            if (string.IsNullOrWhiteSpace(map))
+                return currentRecords.Values;
+
             using (var command = controller.Database.CreateCommand())
             {
-                command.CommandText = string.Format("SELECT * FROM `LocalRecords` WHERE `Map`='{0}'", string.IsNullOrWhiteSpace(map) ? currentMap.UId : map);
+                command.CommandText = string.Format("SELECT * FROM `LocalRecords` WHERE `Map`='{0}'", map);
 
                 if (offset > 0)
                     command.CommandText += string.Format(" OFFSET {0}", offset);
@@ -57,8 +60,16 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
                 command.CommandText += " ORDER BY `TimeOrScore` ASC;";
 
                 var reader = command.ExecuteReader();
-                while (reader.NextResult())
-                    yield return new LocalRecord(controller.ClientsManager.GetClientInfo((string)reader["Player"]), reader);
+                var records = new List<LocalRecord>();
+
+                if (!reader.HasRows)
+                    return Enumerable.Empty<IRecord>();
+
+                do
+                    records.Add(new LocalRecord(controller.ClientsManager.GetClientInfo((string)reader["Player"]), reader));
+                while (reader.NextResult());
+
+                return records;
             }
         }
 
@@ -84,8 +95,13 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
                 command.CommandText += " ORDER BY `TimeOrScore` ASC;";
 
                 var reader = command.ExecuteReader();
-                while (reader.NextResult())
+
+                if (!reader.HasRows)
+                    yield break;
+
+                do
                     yield return new LocalRecord(client, reader);
+                while (reader.NextResult());
             }
         }
 
@@ -123,6 +139,8 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
 
             currentMap = getCurrentMapInfoCall.ReturnValue;
 
+            currentRecords = GetRecords(currentMap.UId).Cast<LocalRecord>().ToDictionary(record => record.Player.Login);
+
             return true;
         }
 
@@ -141,13 +159,16 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
             currentCheckpoints.Clear();
             currentMap = methodCall.Map;
 
+            getGameMode();
+
+            // Has to be called with the UId, because otherwise it'd return the old currentRecords.
             currentRecords = GetRecords(currentMap.UId).Cast<LocalRecord>().ToDictionary(record => record.Player.Login);
         }
 
         private void controller_PlayerCheckpoint(ServerController sender, TrackManiaPlayerCheckpoint methodCall)
         {
             if (!currentCheckpoints.ContainsKey(methodCall.PlayerLogin))
-                currentCheckpoints.Add(methodCall.PlayerLogin, new List<int>());
+                currentCheckpoints.Add(methodCall.PlayerLogin, new List<long>());
 
             currentCheckpoints[methodCall.PlayerLogin].Add(methodCall.TimeOrScore);
         }
@@ -157,7 +178,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
             if (methodCall.TimeOrScore <= 0)
                 return;
 
-            var checkpoints = new int[0];
+            var checkpoints = new long[0];
             if (currentCheckpoints.ContainsKey(methodCall.PlayerLogin))
             {
                 checkpoints = currentCheckpoints[methodCall.PlayerLogin].ToArray();
@@ -169,7 +190,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
                     (currentGameMode != GameModes.Script && currentGameMode != GameModes.Stunts && methodCall.TimeOrScore > currentRecords[methodCall.PlayerLogin].TimeOrScore)
                  || (currentGameMode == GameModes.Stunts && methodCall.TimeOrScore < currentRecords[methodCall.PlayerLogin].TimeOrScore)))
                 return;
-            controller.ChatInterfaceManager.Get("chat").Send("$zNew Record by " + controller.ClientsManager.GetClientInfo(methodCall.PlayerLogin).Nickname + "$z: " + (methodCall.TimeOrScore / 1000) + ":" + (methodCall.TimeOrScore % 1000));
+
             save(new LocalRecord(controller.ClientsManager.GetClientInfo(methodCall.PlayerLogin), currentMap.UId, methodCall.TimeOrScore, checkpoints));
         }
 
@@ -186,13 +207,13 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
             return true;
         }
 
-        private void onNewRecord(LocalRecord record)
+        private void onNewRecord([NotNull] LocalRecord record)
         {
             if (NewRecord != null)
                 NewRecord(this, record);
         }
 
-        private void onRecordImproved(LocalRecord oldRecord, LocalRecord record)
+        private void onRecordImproved([NotNull] LocalRecord oldRecord, [NotNull] LocalRecord record)
         {
             if (RecordImproved != null)
                 RecordImproved(this, oldRecord, record);
@@ -216,8 +237,14 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
                 onNewRecord(record);
         }
 
+        /// <summary>
+        /// Gets fired when a Player, that didn't have a record on the current map before, achieves a record.
+        /// </summary>
         public event NewRecordEventHandler NewRecord;
 
+        /// <summary>
+        /// Gets fired when a Player, that already had a record on the current map, improves their record.
+        /// </summary>
         public event RecordImprovedEventHandler RecordImproved;
     }
 }

@@ -18,7 +18,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
         /// <summary>
         /// Gets the times in ms or the scores for the checkpoints in order from first to last.
         /// </summary>
-        public IEnumerable<int> CheckpointTimesOrScores { get; private set; }
+        public IEnumerable<long> CheckpointTimesOrScores { get; private set; }
 
         /// <summary>
         /// Gets the UId of the map that this record is for.
@@ -33,27 +33,27 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
         /// <summary>
         /// Gets the time in ms or the score of the Player achieved.
         /// </summary>
-        public int TimeOrScore { get; private set; }
+        public long TimeOrScore { get; private set; }
 
         internal LocalRecord([NotNull] IClient player, [NotNull] SqliteDataReader reader)
         {
             Player = player;
 
             Map = (string)reader["Map"];
-            TimeOrScore = (int)reader["TimeOrScore"];
+            TimeOrScore = (long)reader["TimeOrScore"];
 
-            var checkpointTimesOrScores = new List<int>();
+            var checkpointTimesOrScores = new List<long>();
             foreach (var checkpointTimeOrScore in ((string)reader["CheckpointTimesOrScores"]).Split(checkpointsSeparatorChar))
             {
-                int timeOrScore;
-                if (int.TryParse(checkpointTimeOrScore, out timeOrScore))
+                long timeOrScore;
+                if (long.TryParse(checkpointTimeOrScore, out timeOrScore))
                     checkpointTimesOrScores.Add(timeOrScore);
             }
 
             CheckpointTimesOrScores = checkpointTimesOrScores.ToArray();
         }
 
-        internal LocalRecord([NotNull] IClient player, [NotNull] string map, int timeOrScore, [NotNull] int[] checkpointTimesOrScores)
+        internal LocalRecord([NotNull] IClient player, [NotNull] string map, long timeOrScore, [NotNull] long[] checkpointTimesOrScores)
         {
             Player = player;
             Map = map;

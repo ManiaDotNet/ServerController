@@ -596,24 +596,13 @@ namespace ManiaNet.DedicatedServer.Controller
 
             var pluginTypes = PluginLoader.LoadPluginsFromFolders<ControllerPlugin>(Configuration.PluginFolders);
 
-            plugins = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes.Append(typeof(LocalRecordsProvider))).Select(plugin =>
-                                                                                            {
-                                                                                                Console.WriteLine(PluginBase.GetName(plugin.GetType()) + " ...");
-
-                                                                                                var success = plugin.Load(this);
-                                                                                                Console.WriteLine(success ? "OK" : "Failed");
-
-                                                                                                return new { Plugin = plugin, Success = success };
-                                                                                            })
-                                  .Where(loadedPlugin => loadedPlugin.Success)
-                                  .Select(loadedPlugin => loadedPlugin.Plugin)
-                                  .ToDictionary(plugin => PluginBase.GetIdentifier(plugin.GetType()).Replace(' ', '_').Replace('$', '_').ToLower());
+            var pluginInstances = PluginLoader.InstanciatePlugins<ControllerPlugin>(pluginTypes.Append(typeof(LocalRecordsProvider))).ToList();
 
             Console.WriteLine();
             ControllerPlugin manialinkDisplayManager = null;
             try
             {
-                manialinkDisplayManager = plugins.Values.SingleOrDefault(plugin => typeof(IManialinkDisplayManager).IsAssignableFrom(plugin.GetType()));
+                manialinkDisplayManager = pluginInstances.SingleOrDefault(plugin => typeof(IManialinkDisplayManager).IsAssignableFrom(plugin.GetType()));
             }
             catch
             {
@@ -633,7 +622,7 @@ namespace ManiaNet.DedicatedServer.Controller
                 manialinkDisplayManager = new ManialinkDisplayManager();
                 if (manialinkDisplayManager.Load(this))
                 {
-                    plugins.Add(PluginBase.GetIdentifier(manialinkDisplayManager.GetType()).Replace(' ', '_').Replace('$', '_').ToLower(), manialinkDisplayManager);
+                    pluginInstances.Add(manialinkDisplayManager);
                     ManialinkDisplayManager = (IManialinkDisplayManager)manialinkDisplayManager;
                 }
             }
@@ -642,7 +631,7 @@ namespace ManiaNet.DedicatedServer.Controller
             ControllerPlugin clientsManager = null;
             try
             {
-                clientsManager = plugins.Values.SingleOrDefault(plugin => typeof(IClientsManager).IsAssignableFrom(plugin.GetType()));
+                clientsManager = pluginInstances.SingleOrDefault(plugin => typeof(IClientsManager).IsAssignableFrom(plugin.GetType()));
             }
             catch
             {
@@ -662,10 +651,23 @@ namespace ManiaNet.DedicatedServer.Controller
                 clientsManager = new ClientsManager();
                 if (clientsManager.Load(this))
                 {
-                    plugins.Add(PluginBase.GetIdentifier(clientsManager.GetType()).Replace(' ', '_').Replace('$', '_').ToLower(), clientsManager);
+                    pluginInstances.Add(clientsManager);
                     ClientsManager = (IClientsManager)clientsManager;
                 }
             }
+
+            plugins = pluginInstances.Select(plugin =>
+            {
+                Console.WriteLine(PluginBase.GetName(plugin.GetType()) + " ...");
+
+                var success = plugin.Load(this);
+                Console.WriteLine(success ? "OK" : "Failed");
+
+                return new { Plugin = plugin, Success = success };
+            })
+                                  .Where(loadedPlugin => loadedPlugin.Success)
+                                  .Select(loadedPlugin => loadedPlugin.Plugin)
+                                  .ToDictionary(plugin => PluginBase.GetIdentifier(plugin.GetType()).Replace(' ', '_').Replace('$', '_').ToLower());
 
             Console.WriteLine("Completed Loading Plugins.");
         }
