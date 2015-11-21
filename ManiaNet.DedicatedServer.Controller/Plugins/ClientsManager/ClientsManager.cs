@@ -1,9 +1,9 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Annotations;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
-using Mono.Data.Sqlite;
 using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Linq;
 using System.Reflection;
 
@@ -71,7 +71,13 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager
             try
             {
                 var client = new Client(wsClient, DateTime.Now);
+                var currentClient = currentClients.SingleOrDefault(curClient => curClient.Login == client.Login);
+                if (currentClient != null)
+                    client.LocalId = currentClient.LocalId;
+
                 insertOrReplaceInDb(client);
+                currentClients.Remove(currentClient);
+                currentClients.Add(client);
                 return client;
             }
             catch
@@ -97,7 +103,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager
 
                 if (reader.HasRows)
                 {
-                    if (reader.NextResult())
+                    if (reader.Read())
                         return getDbClientOrFetched(reader);
                 }
             }
@@ -127,7 +133,10 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager
                 using (var reader = command.ExecuteReader())
                 {
                     while (reader.NextResult())
+                    {
+                        reader.Read();
                         yield return getDbClientOrFetched(reader);
+                    }
                 }
             }
         }
@@ -191,7 +200,10 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager
             var count = 0;
             Client client = null;
             while (client == null && count++ <= 3)
-                client = getClientInfo(getPlayerInfoCall.ReturnValue.Login, getPlayerInfoCall.ReturnValue.NickName);
+                client = getClientInfo(
+                    getPlayerInfoCall.ReturnValue.Login,
+                    getPlayerInfoCall.ReturnValue.NickName,
+                    (uint)getPlayerInfoCall.ReturnValue.PlayerId);
 
             if (client != null)
                 currentClients.Add(client);
@@ -218,7 +230,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager
         /// <param name="nickName">The up-to-date nickname of the player.</param>
         /// <returns>The <see cref="Client"/> information.</returns>
         [CanBeNull, UsedImplicitly]
-        private Client getClientInfo([NotNull] string login, [NotNull] string nickName)
+        private Client getClientInfo([NotNull] string login, [NotNull] string nickName, uint localId)
         {
             var client = (Client)GetClientInfo(login);
 
@@ -226,6 +238,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager
                 return null;
 
             client.Nickname = nickName;
+            client.LocalId = localId;
             insertOrReplaceInDb(client);
 
             return client;
@@ -237,9 +250,12 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager
         /// </summary>
         /// <param name="nameValueCollection">The collection of values from the db.</param>
         /// <returns>The <see cref="Client"/> information.</returns>
-        private Client getDbClientOrFetched(SqliteDataReader nameValueCollection)
+        private Client getDbClientOrFetched(SQLiteDataReader nameValueCollection)
         {
             var dbClient = new Client(nameValueCollection);
+            var currentClient = currentClients.SingleOrDefault(client => client.Login == dbClient.Login);
+            if (currentClient != null)
+                dbClient.LocalId = currentClient.LocalId;
 
             if ((DateTime.Now - dbClient.Fetched).TotalSeconds < fetchMaxAgeSeconds)
                 return dbClient;
@@ -287,10 +303,11 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager
 
             // Server Account is always first.
             var serverHost = getPlayerListCall.ReturnValue.First().Value;
-            ServerHost = getClientInfo(serverHost.Login, serverHost.NickName);
+            ServerHost = getClientInfo(serverHost.Login, serverHost.NickName, (uint)serverHost.PlayerId);
 
             currentClients.Clear();
-            currentClients.AddRange(getPlayerListCall.ReturnValue.Skip(1).Select(clientInfo => getClientInfo(clientInfo.Value.Login, clientInfo.Value.NickName)));
+            currentClients.AddRange(getPlayerListCall.ReturnValue.Skip(1).Select(clientInfo =>
+                getClientInfo(clientInfo.Value.Login, clientInfo.Value.NickName, (uint)clientInfo.Value.PlayerId)));
 
             return true;
         }

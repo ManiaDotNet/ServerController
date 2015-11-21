@@ -1,9 +1,9 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Annotations;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Records;
-using Mono.Data.Sqlite;
 using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Linq;
 
 namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
@@ -35,7 +35,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
         /// </summary>
         public long TimeOrScore { get; private set; }
 
-        internal LocalRecord([NotNull] IClient player, [NotNull] SqliteDataReader reader)
+        internal LocalRecord([NotNull] IClient player, [NotNull] SQLiteDataReader reader)
         {
             Player = player;
 

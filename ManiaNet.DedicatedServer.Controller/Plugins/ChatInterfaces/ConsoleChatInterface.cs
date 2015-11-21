@@ -9,7 +9,7 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.ChatInterfaces
 {
     internal class ConsoleChatInterface : IChatInterface
     {
-        public void Send(string message, IClient sender = null, object image = null)
+        public void SendToAll(string message, IClient sender = null, object image = null)
         {
             if (image == null)
             {
@@ -41,9 +41,9 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.ChatInterfaces
             }
         }
 
-        public void SendTo(string message, string recipient, IClient sender = null, object image = null)
+        public void SendToPlayer(string message, IClient recipient, IClient sender = null, object image = null)
         {
-            this.Send(message, sender, image);
+            SendToAll(message, sender, image);
         }
 
         private static string formatMessage(IClient sender, string message, string striplvl = "lf", bool addTime = false)

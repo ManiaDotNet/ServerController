@@ -1,9 +1,9 @@
 ﻿using ManiaNet.DedicatedServer.Controller.Annotations;
 using ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients;
 using ManiaNet.ManiaPlanet.WebServices;
-using Mono.Data.Sqlite;
 using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Linq;
 
 namespace ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager
@@ -21,10 +21,16 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager
         public DateTime Fetched { get; internal set; }
 
         /// <summary>
-        /// Gets the ManiaPlanet Id of the Client.
+        /// Gets the ManiaPlanet Id of the Client. Null if the player is not connected.
         /// </summary>
         [UsedImplicitly]
-        public uint Id { get; internal set; }
+        public uint? Id { get; internal set; }
+
+        /// <summary>
+        /// Gets the local Id of the Client.
+        /// </summary>
+        [UsedImplicitly]
+        public uint LocalId { get; internal set; }
 
         /// <summary>
         /// Gets the Login of the Client.
@@ -72,13 +78,13 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.ClientsManager
         /// Creates a new instance of the <see cref="Client"/> class with the given NameValueCollection from a database reader.
         /// </summary>
         /// <param name="reader">The reader from the database.</param>
-        internal Client(SqliteDataReader reader)
+        internal Client(SQLiteDataReader reader)
         {
             Fetched = ((long)reader["Fetched"]).FromUnixTimeStampToDateTime();
-            Id = (uint)reader["Id"];
+            Id = (uint)(long)reader["Id"];
             Login = (string)reader["Login"];
             Nickname = (string)reader["Nickname"];
-            ZoneId = (uint)reader["ZoneId"];
+            ZoneId = (uint)(long)reader["ZoneId"];
             ZonePath = (string)reader["ZonePath"];
         }
     }

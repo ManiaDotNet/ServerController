@@ -10,13 +10,14 @@ using ManiaNet.DedicatedServer.Controller.Plugins.ManialinkDisplayManager;
 using ManiaNet.DedicatedServer.XmlRpc.Methods;
 using ManiaNet.DedicatedServer.XmlRpc.Structs;
 using ManiaNet.ManiaPlanet.WebServices;
-using Mono.Data.Sqlite;
 using SharpPlugins;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data.SQLite;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,7 +61,7 @@ namespace ManiaNet.DedicatedServer.Controller
         /// Gets the connection to the SQLite database.
         /// </summary>
         [NotNull, UsedImplicitly]
-        public SqliteConnection Database { get; private set; }
+        public SQLiteConnection Database { get; private set; }
 
         /// <summary>
         /// Gets the Manialink Display Manager used by the Controller.
@@ -106,7 +107,7 @@ namespace ManiaNet.DedicatedServer.Controller
             this.xmlRpcClient.MethodResponse += xmlRpcClient_MethodResponse;
             this.xmlRpcClient.ServerCallback += xmlRpcClient_ServerCallback;
 
-            Database = new SqliteConnection("Data Source=" + config.DatabasePath + ";Version=3;");
+            Database = new SQLiteConnection("Data Source=" + config.DatabasePath + ";Version=3;");
             Database.Open();
 
             WebServicesClient = new CombiClient(config.WebServicesLogin, config.WebServicesPassword);
@@ -184,7 +185,15 @@ namespace ManiaNet.DedicatedServer.Controller
         [UsedImplicitly]
         public bool Start()
         {
-            xmlRpcClient.StartReceive();
+            try
+            {
+                xmlRpcClient.StartReceive();
+            }
+            catch (SocketException)
+            {
+                Console.WriteLine("Couldn't connect to server.");
+                return false;
+            }
 
             if (!authenticate())
                 return false;
@@ -298,12 +307,28 @@ namespace ManiaNet.DedicatedServer.Controller
                     var playerChatCall = new ManiaPlanetPlayerChat();
                     if (playerChatCall.ParseCallXml(methodCall))
                     {
-                        var registeredCommandName = registeredCommands.Keys.SingleOrDefault(cmdName => (playerChatCall.Text + " ").ToLower().StartsWith("/" + cmdName + " "));
+                        if (!playerChatCall.Text.StartsWith("/"))
+                            if (PlayerChat != null)
+                                PlayerChat(this, playerChatCall);
 
-                        if (registeredCommandName != null)
-                            registeredCommands[registeredCommandName](playerChatCall);
-                        else if (PlayerChat != null)
-                            PlayerChat(this, playerChatCall);
+                        var potentialCommand = (playerChatCall.Text.TrimStart('/') + " ").ToLowerInvariant();
+                        var command = registeredCommands.Where(cmd => potentialCommand.StartsWith(cmd.Key + " "));
+
+                        if (command.Any())
+                            try
+                            {
+                                command.Single().Value(playerChatCall);
+                            }
+                            catch //TODO: Specify exception
+                            {
+                                ChatInterfaceManager.Get(Configuration.DefaultChat).SendToPlayer(
+                                "The command [" + playerChatCall.Text.TrimStart('/') + "] was somehow not unique.",
+                                ClientsManager.GetClientInfo(playerChatCall.ClientLogin));
+                            }
+                        else
+                            ChatInterfaceManager.Get(Configuration.DefaultChat).SendToPlayer(
+                                "The command [" + playerChatCall.Text.TrimStart('/') + "] couldn't be found.",
+                                ClientsManager.GetClientInfo(playerChatCall.ClientLogin));
                     }
                     break;
 
@@ -490,7 +515,7 @@ namespace ManiaNet.DedicatedServer.Controller
 
         private void ServerController_PlayerChat(ServerController sender, ManiaPlanetPlayerChat methodCall)
         {
-            this.ChatInterfaceManager.Get(Configuration.DefaultChat).Send(methodCall.Text, this.ClientsManager.GetClientInfo(methodCall.ClientLogin));
+            ChatInterfaceManager.Get(Configuration.DefaultChat).SendToAll(methodCall.Text, this.ClientsManager.GetClientInfo(methodCall.ClientLogin));
         }
 
         private bool setupServerOptions()
@@ -726,6 +751,15 @@ namespace ManiaNet.DedicatedServer.Controller
         #region Callback Events
 
         /// <summary>
+        /// Delegate for the various server callback events.
+        /// </summary>
+        /// <typeparam name="TMethodCall">The type representing the called method.</typeparam>
+        /// <param name="sender">The ServerController that fired the event.</param>
+        /// <param name="methodCall">The method call information.</param>
+        public delegate void ServerCallbackEventHandler<in TMethodCall>(ServerController sender, TMethodCall methodCall)
+            where TMethodCall : XmlRpcMethodCall<XmlRpcBoolean, bool>;
+
+        /// <summary>
         /// Fires when a map begins.
         /// </summary>
         [UsedImplicitly]
@@ -822,15 +856,6 @@ namespace ManiaNet.DedicatedServer.Controller
         /// </summary>
         [UsedImplicitly]
         public event ServerCallbackEventHandler<ManiaPlanetPlayerManialinkPageAnswer> PlayerManialinkPageAnswer;
-
-        /// <summary>
-        /// Delegate for the various server callback events.
-        /// </summary>
-        /// <typeparam name="TMethodCall">The type representing the called method.</typeparam>
-        /// <param name="sender">The ServerController that fired the event.</param>
-        /// <param name="methodCall">The method call information.</param>
-        public delegate void ServerCallbackEventHandler<in TMethodCall>(ServerController sender, TMethodCall methodCall)
-            where TMethodCall : XmlRpcMethodCall<XmlRpcBoolean, bool>;
 
         /// <summary>
         /// Fires when the server is started.

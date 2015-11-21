@@ -71,7 +71,10 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.LocalRecordsProvider
                     return Enumerable.Empty<IRecord>();
 
                 do
+                {
+                    reader.Read();
                     records.Add(new LocalRecord(controller.ClientsManager.GetClientInfo((string)reader["Player"]), reader));
+                }
                 while (reader.NextResult());
 
                 return records;

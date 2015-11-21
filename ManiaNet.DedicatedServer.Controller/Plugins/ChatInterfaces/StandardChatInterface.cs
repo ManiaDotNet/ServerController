@@ -14,21 +14,20 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.ChatInterfaces
             this.controller = controller;
         }
 
-        public void Send(string message, IClient sender = null, object image = null)
+        public void Send(string message, string sender, object image = null)
+        {
+            SendToAll(message, controller.ClientsManager.GetClientInfo(sender), image);
+        }
+
+        public void SendToAll(string message, IClient sender = null, object image = null)
         {
             controller.CallMethod(new ChatSendServerMessage(formatMessage(sender, message)), 0);
         }
 
-        public void Send(string message, string sender, object image = null)
-        {
-            Send(message, controller.ClientsManager.GetClientInfo(sender), image);
-        }
-
-        public void SendTo(string message, string recipient, IClient sender = null, object image = null)
+        public void SendToPlayer(string message, IClient recipient, IClient sender = null, object image = null)
         {
             // TODO: var chatmethod = new ChatSendServerMessageToLogin(msg, recipient);
-            controller.CallMethod(new ChatSendServerMessageToId(formatMessage(sender, message),
-                (int)controller.ClientsManager.GetClientInfo(recipient).Id), 0);
+            controller.CallMethod(new ChatSendServerMessageToId(formatMessage(sender, message), (int)recipient.LocalId), 0);
         }
 
         private static string formatMessage(IClient sender, string message)

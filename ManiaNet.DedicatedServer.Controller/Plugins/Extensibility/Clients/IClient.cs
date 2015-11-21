@@ -1,5 +1,5 @@
-using System;
 using ManiaNet.DedicatedServer.Controller.Annotations;
+using System;
 
 namespace ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients
 {
@@ -12,10 +12,16 @@ namespace ManiaNet.DedicatedServer.Controller.Plugins.Extensibility.Clients
         DateTime Fetched { get; }
 
         /// <summary>
-        /// Gets the ManiaPlanet Id of the Client.
+        /// Gets the ManiaPlanet Id of the Client. Null if the player is not connected.
         /// </summary>
         [UsedImplicitly]
-        uint Id { get; }
+        uint? Id { get; }
+
+        /// <summary>
+        /// Gets the local Id of the Client.
+        /// </summary>
+        [UsedImplicitly]
+        uint LocalId { get; }
 
         /// <summary>
         /// Gets the Login of the Client.
